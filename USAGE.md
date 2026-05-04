@@ -1,4 +1,8 @@
 # 📖 jhua-hpage 组件化主页使用文档
+
+> 🎯 **纯组件化方案**：插件不再提供「打开主页」功能，所有模块均以组件标签形式嵌入到 Obsidian 文档中使用。
+> 配合 [Homepage 插件](https://github.com/salt517/obsidian-homepage) 打开你的主页文档即可。
+
 ## 🚀 快速上手（复制直接用）
 ### ✅ 最新懒人首选：单个组件自带「左侧待办2/3 + 右侧待整理1/3」布局：
 ```markdown
@@ -44,15 +48,8 @@ modules:
 ```
 ```
 
-### 旧版分栏写法（仍兼容，不推荐）：
-```markdown
-```jhua-hpage-columns
-cols=2 gap=20 ratio=2:1
-{{jhua-hpage:todo-list?showCompleted=true&maxItems=8&sortBy=dueDate}}
-{{jhua-hpage:unorganized-files}}
-```
-```
 ---
+
 ## 🧩 通用布局参数
 
 所有组件都支持 `span` 和 `right` 参数控制布局：

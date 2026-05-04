@@ -1,0 +1,2353 @@
+/* ==================== Jhua Homepage Styles ==================== */
+
+/* ==================== 栅格布局系统 ==================== */
+.jhua-span-4 { width: 100% !important; margin-right: 0 !important; display: inline-block !important; vertical-align: top !important; margin-bottom: 20px !important; }
+.jhua-span-3 { width: calc(75% - 15px) !important; display: inline-block !important; vertical-align: top !important; margin-right: 20px !important; margin-bottom: 20px !important; }
+.jhua-span-2 { width: calc(50% - 10px) !important; min-width: 300px !important; display: inline-block !important; vertical-align: top !important; margin-right: 20px !important; margin-bottom: 20px !important; }
+.jhua-span-1 { width: calc(25% - 5px) !important; min-width: 200px !important; display: inline-block !important; vertical-align: top !important; margin-right: 20px !important; margin-bottom: 20px !important; }
+
+/* 同一行最后一个元素去掉右边距 */
+[class*="jhua-span-"]:nth-child(4n),
+[class*="jhua-span-"]:nth-last-child(1) {
+  margin-right: 0 !important;
+}
+
+/* 处理Markdown自动包裹的p标签 */
+.markdown-preview-view p:has(.jhua-hpage-inline-render) {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* 响应式：小屏幕自动全宽 */
+@media (max-width: 768px) {
+  [class*="jhua-span-"] {
+    width: 100% !important;
+    margin-right: 0 !important;
+    min-width: auto !important;
+  }
+  /* right参数的行布局，小屏自动堆叠 */
+  .jhua-row-layout {
+    flex-direction: column !important;
+  }
+  .jhua-row-layout > div {
+    width: 100% !important;
+    min-width: auto !important;
+    flex: none !important;
+  }
+}
+
+/* 主容器 - 移除宽度限制 */
+.jhua-hpage-container {
+  padding: 20px 24px;
+  overflow-y: auto;
+}
+
+/* ==================== 横幅区域 ==================== */
+
+.jhua-banner {
+  background: linear-gradient(135deg, #5B93D5 0%, #7BA3D8 100%);
+  color: white;
+  padding: 50px 40px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.jhua-banner-with-bg {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.jhua-banner-with-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.25) 50%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
+  pointer-events: none;
+}
+
+.jhua-banner-content {
+  position: relative;
+  z-index: 2;
+}
+
+.jhua-greeting {
+  margin: 0 0 12px 0;
+  font-size: 2.2em;
+  font-weight: 700;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 0, 0, 0.3);
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.jhua-datetime {
+  font-size: 1.05em;
+  opacity: 0.95;
+  font-weight: 500;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.jhua-countdowns {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.jhua-countdown-item {
+  font-size: 0.95em;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Banner按钮容器 */
+.jhua-banner-buttons {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+}
+
+.jhua-banner-refresh,
+.jhua-banner-settings {
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.jhua-banner-refresh:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  transform: rotate(180deg);
+}
+
+.jhua-banner-settings:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  transform: rotate(30deg);
+}
+
+/* ==================== 快捷导航 ==================== */
+
+.jhua-nav-section {
+  margin-bottom: 20px;
+}
+
+.jhua-nav-section .module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 10;
+}
+
+.jhua-nav-section .module-header h2 {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.jhua-nav-section h2 {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin: 0 0 14px 0;
+  color: var(--text-normal);
+}
+
+.jhua-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.jhua-category-card {
+  background: var(--background-secondary);
+  border-radius: 12px;
+  padding: 16px;
+  border-left: 4px solid var(--category-color, #5B93D5);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 方格背景 */
+.jhua-category-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(45deg, var(--background-modifier-border) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--background-modifier-border) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--background-modifier-border) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--background-modifier-border) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.jhua-category-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.jhua-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.jhua-category-title {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.jhua-nav-settings-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+  font-size: 14px;
+  position: relative;
+  z-index: 10;
+}
+
+.jhua-nav-settings-btn:hover {
+  opacity: 1;
+}
+
+.jhua-category-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.jhua-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--background-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.9em;
+  color: var(--text-normal);
+}
+
+.jhua-nav-item:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  transform: translateX(3px);
+}
+
+/* ==================== 待办事项 ==================== */
+
+/* 两列布局 */
+.jhua-two-column {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.jhua-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.jhua-column-left {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.jhua-column-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 响应式：小屏幕时堆叠 */
+@media (max-width: 900px) {
+  .jhua-two-column {
+    flex-direction: column;
+  }
+}
+
+.jhua-todo-section {
+  background: var(--background-secondary);
+  padding: 16px 20px;
+  border-radius: 12px;
+  /* 外层不滚动，由内部两栏容器各自管理滚动 */
+  height: auto;
+  overflow: visible;
+  position: relative;
+}
+
+/* 待办标题栏悬浮置顶 */
+.jhua-todo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  position: sticky;
+  top: 0;
+  background: var(--background-secondary);
+  z-index: 10;
+  padding-top: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* 最近文档板块样式 */
+.jhua-recent-section {
+  background: var(--background-secondary);
+  padding: 16px 20px;
+  border-radius: 12px;
+  height: auto;
+  overflow: visible;
+  position: relative;
+}
+
+/* 最近文档标题栏悬浮置顶 */
+.jhua-recent-section .jhua-todo-header {
+  position: sticky;
+  top: 0;
+  background: var(--background-secondary);
+  z-index: 10;
+  padding-top: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 14px;
+}
+
+/* 标签流式布局 */
+.jhua-file-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+}
+
+/* 单个标签样式 */
+.jhua-file-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  /* 格子纹作为背景，从右到左30%位置开始加深 */
+  background: 
+    linear-gradient(to left, transparent 0%, transparent 70%, rgba(0,0,0,var(--pattern-max-alpha)) 100%),
+    repeating-linear-gradient(45deg, rgba(0,0,0,var(--pattern-alpha)) 0, rgba(0,0,0,var(--pattern-alpha)) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(-45deg, rgba(0,0,0,var(--pattern-alpha)) 0, rgba(0,0,0,var(--pattern-alpha)) 1px, transparent 1px, transparent 6px),
+    var(--background-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  min-width: 160px;
+  max-width: 220px;
+}
+
+.jhua-file-tag:hover {
+  background: 
+    linear-gradient(to left, transparent 0%, transparent 70%, rgba(0,0,0,calc(var(--pattern-max-alpha) + 0.03)) 100%),
+    repeating-linear-gradient(45deg, rgba(0,0,0,calc(var(--pattern-alpha) + 0.02)) 0, rgba(0,0,0,calc(var(--pattern-alpha) + 0.02)) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(-45deg, rgba(0,0,0,calc(var(--pattern-alpha) + 0.02)) 0, rgba(0,0,0,calc(var(--pattern-alpha) + 0.02)) 1px, transparent 1px, transparent 6px),
+    var(--background-modifier-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* 10个标签整体格子纹深度从左到右/从新到旧逐步加深 */
+.jhua-file-tag[data-index="0"] { --pattern-alpha: 0.01; --pattern-max-alpha: 0.02; }
+.jhua-file-tag[data-index="1"] { --pattern-alpha: 0.015; --pattern-max-alpha: 0.03; }
+.jhua-file-tag[data-index="2"] { --pattern-alpha: 0.02; --pattern-max-alpha: 0.04; }
+.jhua-file-tag[data-index="3"] { --pattern-alpha: 0.025; --pattern-max-alpha: 0.05; }
+.jhua-file-tag[data-index="4"] { --pattern-alpha: 0.03; --pattern-max-alpha: 0.06; }
+.jhua-file-tag[data-index="5"] { --pattern-alpha: 0.035; --pattern-max-alpha: 0.07; }
+.jhua-file-tag[data-index="6"] { --pattern-alpha: 0.04; --pattern-max-alpha: 0.08; }
+.jhua-file-tag[data-index="7"] { --pattern-alpha: 0.045; --pattern-max-alpha: 0.09; }
+.jhua-file-tag[data-index="8"] { --pattern-alpha: 0.05; --pattern-max-alpha: 0.10; }
+.jhua-file-tag[data-index="9"] { --pattern-alpha: 0.055; --pattern-max-alpha: 0.11; }
+
+/* 文件名 */
+.file-tag-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+
+/* 编辑时间 */
+.file-tag-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* 去掉原来的格子纹元素样式 */
+.file-tag-pattern {
+  display: none;
+}
+
+/* 去掉原来的列表样式 */
+.jhua-file-list, .jhua-file-item, .file-icon, .file-info, .file-name, .file-meta, .file-time, .file-path, .file-preview {
+  display: none;
+}
+
+.jhua-todo-header h2 {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-normal);
+}
+
+.jhua-todo-add-btn {
+  padding: 8px 16px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.jhua-todo-add-btn:hover {
+  background: var(--interactive-accent-hover);
+}
+
+.jhua-todo-title-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jhua-todo-source-alias {
+  font-size: 0.9em;
+  color: var(--text-muted);
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.jhua-todo-header-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.jhua-todo-settings-btn {
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--text-muted);
+}
+
+.jhua-todo-settings-btn:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  transform: rotate(30deg);
+  border-color: var(--interactive-accent);
+}
+
+.jhua-todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jhua-todo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, var(--background-primary) 0%, var(--background-primary-alt) 100%);
+  border-radius: 8px;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.jhua-todo-item.priority-high {
+  border-left-color: #e74c3c;
+}
+
+.jhua-todo-item.priority-medium {
+  border-left-color: #f39c12;
+}
+
+.jhua-todo-item.priority-low {
+  border-left-color: #27ae60;
+}
+
+/* 已完成待办 - 置灰 */
+.jhua-todo-item.completed {
+  opacity: 0.5;
+  background: var(--background-secondary) !important;
+  box-shadow: none;
+}
+
+.jhua-todo-item.completed .jhua-todo-text {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* 日期状态背景色 - 更柔和的渐变 */
+.jhua-todo-item.due-overdue {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.12) 0%, rgba(231, 76, 60, 0.06) 100%);
+  border-left-color: #e74c3c !important;
+}
+
+.jhua-todo-item.due-today {
+  background: linear-gradient(135deg, rgba(39, 174, 96, 0.12) 0%, rgba(39, 174, 96, 0.06) 100%);
+  border-left-color: #27ae60 !important;
+}
+
+.jhua-todo-item.due-future {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.12) 0%, rgba(52, 152, 219, 0.06) 100%);
+  border-left-color: #3498db !important;
+}
+
+/* Hover效果 - 更显眼 */
+.jhua-todo-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--interactive-accent);
+  background: var(--background-primary-alt);
+}
+
+.jhua-todo-item.due-overdue:hover {
+  box-shadow: 0 3px 8px rgba(231, 76, 60, 0.25), 0 0 0 2px rgba(231, 76, 60, 0.5);
+}
+
+.jhua-todo-item.due-today:hover {
+  box-shadow: 0 3px 8px rgba(39, 174, 96, 0.25), 0 0 0 2px rgba(39, 174, 96, 0.5);
+}
+
+.jhua-todo-item.due-future:hover {
+  box-shadow: 0 3px 8px rgba(52, 152, 219, 0.25), 0 0 0 2px rgba(52, 152, 219, 0.5);
+}
+
+.jhua-todo-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--interactive-accent);
+  flex-shrink: 0;
+}
+
+.jhua-todo-item {
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.jhua-todo-content {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.jhua-todo-content:hover {
+  color: var(--interactive-accent);
+}
+
+.jhua-todo-text {
+  font-size: 0.9em;
+  color: var(--text-normal);
+}
+
+/* 新的待办项布局样式 */
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+  margin-bottom: 4px;
+  background: var(--background-primary);
+}
+
+.todo-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.todo-content {
+  flex: 1;
+  min-width: 0; /* 防止内容过长溢出 */
+}
+
+.todo-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9em;
+  color: var(--text-normal);
+}
+
+.todo-source {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+.todo-item.completed .todo-text {
+  text-decoration: line-through;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.jhua-todo-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.jhua-todo-tag {
+  font-size: 0.75em;
+  padding: 2px 8px;
+  background: var(--background-modifier-border);
+  border-radius: 10px;
+  color: var(--text-muted);
+}
+
+.jhua-todo-delete {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.jhua-todo-delete:hover {
+  opacity: 1;
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.jhua-empty-state {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+
+/* ==================== 添加待办弹窗 ==================== */
+
+.jhua-add-todo-modal h2 {
+  margin-bottom: 16px;
+}
+
+/* ==================== 最近文档 ==================== */
+
+.jhua-recent-section h2 {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin: 0 0 14px 0;
+  color: var(--text-normal);
+}
+
+.jhua-recent-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.jhua-recent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--background-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.85em;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 黑白方格渐变背景 - 从右侧往左渐变消失，渐变范围80% */
+.jhua-recent-item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 5px,
+    rgba(50, 50, 50, 0.4) 5px,
+    rgba(50, 50, 50, 0.4) 7px
+  );
+  opacity: 0.5;
+  pointer-events: none;
+  /* 从右侧往左渐变，到80%位置完全透明 */
+  mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0) 80%);
+  -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0) 80%);
+}
+
+.jhua-recent-item:hover {
+  background: var(--background-primary-alt);
+  transform: translateY(-1px);
+}
+
+.jhua-recent-name {
+  color: var(--text-normal);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.jhua-recent-time {
+  color: var(--text-muted);
+  font-size: 0.85em;
+  flex-shrink: 0;
+  margin-left: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ==================== 导航设置模态框 ==================== */
+
+.jhua-nav-settings-modal {
+  width: 90%;
+  max-width: 900px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.jhua-nav-settings-modal h2 {
+  margin-bottom: 16px;
+  color: var(--text-normal);
+}
+
+.jhua-category-section {
+  margin-bottom: 16px;
+  padding: 14px;
+  background: var(--background-secondary);
+  border-radius: 10px;
+  border: 1px solid var(--background-modifier-border);
+}
+
+.jhua-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.jhua-category-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.jhua-category-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.jhua-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.jhua-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--background-primary);
+  border-radius: 6px;
+}
+
+.jhua-item-path {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  font-family: monospace;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 12px;
+}
+
+.jhua-item-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.jhua-btn-small {
+  padding: 4px 10px;
+  font-size: 0.8em;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  transition: all 0.15s ease;
+}
+
+.jhua-btn-small:hover {
+  background: var(--interactive-accent-hover);
+}
+
+.jhua-btn-danger {
+  background: #e74c3c !important;
+}
+
+.jhua-btn-danger:hover {
+  background: #c0392b !important;
+}
+
+.jhua-add-item-btn {
+  width: 100%;
+  padding: 8px;
+  margin-top: 6px;
+  border: 2px dashed var(--background-modifier-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85em;
+  transition: all 0.15s ease;
+}
+
+.jhua-add-item-btn:hover {
+  border-color: var(--interactive-accent);
+  color: var(--interactive-accent);
+}
+
+/* ==================== Banner设置模态框 ==================== */
+
+.jhua-banner-settings-modal h2 {
+  margin-bottom: 16px;
+}
+
+/* ==================== 响应式设计 ==================== */
+
+@media (max-width: 768px) {
+  .jhua-hpage-container {
+    padding: 12px 16px;
+  }
+  
+  .jhua-banner {
+    padding: 30px 20px;
+    min-height: 140px;
+  }
+  
+  .jhua-greeting {
+    font-size: 1.6em;
+  }
+  
+  .jhua-nav-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .jhua-recent-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==================== 深色模式增强 ==================== */
+
+.theme-dark .jhua-category-card,
+.theme-dark .jhua-todo-section,
+.theme-dark .jhua-recent-section {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.theme-dark .jhua-banner {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* ==================== 待整理区域 ==================== */
+
+.jhua-unorganized-section {
+  background: var(--background-secondary);
+  padding: 16px 20px;
+  border-radius: 12px;
+  height: fit-content;
+}
+
+.jhua-unorganized-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  position: sticky;
+  top: -16px; /* 对齐板块顶部padding，完全遮盖住上方区域 */
+  background: var(--background-secondary);
+  z-index: 10;
+  padding-top: 20px; /* 原来的4px + 16px顶部偏移补偿 */
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.jhua-unorganized-header h2 {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-normal);
+}
+
+.jhua-unorganized-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.jhua-unorganized-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, var(--background-primary) 0%, var(--background-primary-alt) 100%);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  gap: 12px;
+}
+
+.jhua-unorganized-item:hover {
+  background: var(--interactive-accent);
+  transform: translateX(4px);
+}
+
+.jhua-unorganized-item:hover .jhua-unorganized-name,
+.jhua-unorganized-item:hover .jhua-tag {
+  color: var(--text-on-accent);
+}
+
+.jhua-unorganized-name {
+  flex: 1;
+  font-size: 0.9em;
+  font-weight: 500;
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jhua-unorganized-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.jhua-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75em;
+  padding: 2px 8px;
+  background: rgba(116, 185, 255, 0.15);
+  border-radius: 12px;
+  color: #74B9FF;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+/* 待整理区域标签颜色 */
+.jhua-tag.jhua-tag-work {
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498DB;
+}
+
+.jhua-tag.jhua-tag-study {
+  background: rgba(155, 89, 182, 0.15);
+  color: #9B59B6;
+}
+
+.jhua-tag.jhua-tag-life {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ECC71;
+}
+
+.jhua-tag.jhua-tag-project {
+  background: rgba(241, 196, 15, 0.15);
+  color: #F1C40F;
+}
+
+.jhua-tag.jhua-tag-plan {
+  background: rgba(230, 126, 34, 0.15);
+  color: #E67E22;
+}
+
+.jhua-tag.jhua-tag-pending {
+  background: rgba(255, 159, 67, 0.15);
+  color: #FF9F43;
+}
+
+.jhua-tag.jhua-tag-progress {
+  background: rgba(45, 152, 218, 0.15);
+  color: #2D98DA;
+}
+
+.jhua-tag.jhua-tag-done {
+  background: rgba(38, 194, 129, 0.15);
+  color: #26C281;
+}
+
+.jhua-tag.jhua-tag-review {
+  background: rgba(155, 89, 182, 0.15);
+  color: #9B59B6;
+}
+
+.jhua-tag.jhua-tag-urgent {
+  background: rgba(231, 76, 60, 0.2);
+  color: #E74C3C;
+}
+
+.jhua-tag.jhua-tag-important {
+  background: rgba(231, 76, 60, 0.15);
+  color: #E74C3C;
+}
+
+.jhua-tag.jhua-tag-idea {
+  background: rgba(108, 92, 231, 0.15);
+  color: #6C5CE7;
+}
+
+.jhua-tag-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+}
+
+.jhua-tag-delete-btn {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--text-muted);
+  opacity: 0.4;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jhua-tag-delete-btn:hover {
+  opacity: 1;
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.15);
+}
+
+.jhua-add-tag-btn {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: var(--background-modifier-border);
+  border: 1px dashed var(--text-muted);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  color: var(--text-muted);
+  opacity: 0.5;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jhua-add-tag-btn:hover {
+  opacity: 1;
+  background: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+/* 响应式：小屏幕时改为单列 */
+@media (max-width: 768px) {
+  .jhua-two-column {
+    flex-direction: column;
+  }
+  
+  .jhua-column {
+    width: 100%;
+  }
+}
+
+/* ==================== 项目跟踪区域 ==================== */
+
+.jhua-project-tracking-section {
+  margin-bottom: 20px;
+  background: var(--background-secondary);
+  padding: 16px 20px;
+  border-radius: 12px;
+  min-height: 260px; /* 加长一行高度，避免内容刚好溢出 */
+  scrollbar-gutter: stable; /* 预留滚动条位置，完全解决悬停瞬移问题 */
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--background-modifier-border) transparent;
+}
+
+/* 项目跟踪板块滚动条美化，和其他板块统一 */
+.jhua-project-tracking-section::-webkit-scrollbar {
+  width: 6px;
+}
+
+.jhua-project-tracking-section::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.jhua-project-tracking-section::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+}
+
+.jhua-project-tracking-section::-webkit-scrollbar-thumb:hover {
+  background: var(--background-modifier-hover);
+}
+
+.jhua-project-tracking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.jhua-project-tracking-header h2 {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-normal);
+}
+
+.jhua-project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+/* 表头 */
+.jhua-project-table-header {
+  display: grid;
+  grid-template-columns: minmax(150px, 2fr) minmax(80px, 1fr) minmax(120px, 1.5fr) minmax(120px, 1.5fr) minmax(140px, 1.5fr) minmax(100px, 1fr);
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--background-primary);
+  border-radius: 8px 8px 0 0;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--text-muted);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.jhua-project-th {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+  position: relative;
+}
+
+.jhua-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.jhua-sortable:hover {
+  color: var(--interactive-accent);
+}
+
+.jhua-sort-indicator {
+  font-size: 0.9em;
+  opacity: 0.3;
+  margin-left: 4px;
+  transition: opacity 0.15s ease;
+}
+
+.jhua-sort-active {
+/* 项目跟踪表格布局 */
+.jhua-project-table-header {
+  display: grid;
+  grid-template-columns: minmax(150px, 2fr) minmax(80px, 1fr) minmax(120px, 1.5fr) minmax(120px, 1.5fr) minmax(140px, 1.5fr) minmax(100px, 1fr);
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--background-modifier-border);
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.9em;
+  align-items: center;
+}
+
+.jhua-project-th {
+  padding: 0 8px;
+  text-align: left;
+  position: relative;
+}
+
+/* 所有表头列统一内边距 */
+.jhua-th-name,
+.jhua-th-type,
+.jhua-th-progress,
+.jhua-th-remark,
+.jhua-th-tags,
+.jhua-th-ddl {
+  padding: 0 8px;
+  text-align: left;
+}
+
+/* 排序图标绝对定位，不占用内容空间 */
+.jhua-sort-indicator {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 0 !important;
+}
+
+/* 项目行 */
+.jhua-project-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 2fr) minmax(80px, 1fr) minmax(120px, 1.5fr) minmax(120px, 1.5fr) minmax(140px, 1.5fr) minmax(100px, 1fr);
+  gap: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--background-primary) 0%, var(--background-primary-alt) 100%);
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.jhua-project-cell {
+  padding: 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+/* 保留原有列类，避免样式冲突 */
+.jhua-cell-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jhua-cell-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jhua-cell-progress {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jhua-cell-remark {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jhua-cell-tags {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jhua-cell-ddl {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jhua-th-tags {
+  text-align: left;
+}
+
+.jhua-th-progress {
+  text-align: left;
+}
+
+/* 项目行 */
+.jhua-project-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 2fr) minmax(80px, 1fr) minmax(120px, 1.5fr) minmax(120px, 1.5fr) minmax(140px, 1.5fr) minmax(100px, 1fr);
+  gap: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--background-primary) 0%, var(--background-primary-alt) 100%);
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  align-items: start;
+}
+}
+
+.jhua-project-row:hover {
+  background: var(--interactive-accent);
+  transform: translateX(4px);
+}
+
+.jhua-project-row:hover .jhua-project-link,
+.jhua-project-row:hover .jhua-remark-text,
+.jhua-project-row:hover .jhua-meta-badge,
+.jhua-project-row:hover .jhua-tag {
+  color: var(--text-on-accent);
+}
+
+.jhua-project-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* 项目名称 */
+.jhua-cell-name {
+  cursor: pointer;
+  justify-content: flex-start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 类型 - 居中对齐 */
+.jhua-cell-type {
+  justify-content: center;
+}
+
+/* 进度 - 左对齐 */
+.jhua-cell-progress {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+/* 备注 - 左对齐 */
+.jhua-cell-remark {
+  cursor: pointer;
+  justify-content: flex-start;
+}
+
+/* 标签 - 竖列排列 */
+.jhua-cell-tags {
+  display: flex !important;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+  cursor: pointer;
+}
+
+/* DDL - 居中对齐 */
+.jhua-cell-ddl {
+  justify-content: center;
+}
+
+.jhua-project-link {
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jhua-project-link:hover {
+  text-decoration: underline;
+}
+
+.jhua-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.jhua-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.jhua-progress-high {
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+}
+
+.jhua-progress-medium {
+  background: linear-gradient(90deg, #f39c12, #f1c40f);
+}
+
+.jhua-progress-low {
+  background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+.jhua-remark-text {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.jhua-remark-text:hover {
+  color: var(--interactive-accent);
+}
+
+/* 通用徽章样式 */
+.jhua-meta-badge {
+  font-size: 0.75em;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.jhua-type-badge {
+  background: rgba(116, 185, 255, 0.15);
+  color: #74B9FF;
+}
+
+/* 类型颜色 - 使用更高优先级选择器 */
+.jhua-meta-badge.jhua-type-work {
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498DB;
+}
+
+.jhua-meta-badge.jhua-type-study {
+  background: rgba(155, 89, 182, 0.15);
+  color: #9B59B6;
+}
+
+.jhua-meta-badge.jhua-type-life {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ECC71;
+}
+
+.jhua-meta-badge.jhua-type-project {
+  background: rgba(241, 196, 15, 0.15);
+  color: #F1C40F;
+}
+
+.jhua-meta-badge.jhua-type-plan {
+  background: rgba(230, 126, 34, 0.15);
+  color: #E67E22;
+}
+
+.jhua-meta-badge.jhua-type-other {
+  background: rgba(108, 92, 231, 0.15);
+  color: #6C5CE7;
+}
+
+/* 项目状态颜色 - 高优先级选择器 */
+.jhua-meta-badge.jhua-status-pending {
+  background: rgba(255, 159, 67, 0.2);
+  color: #FF9F43;
+}
+
+.jhua-meta-badge.jhua-status-progress {
+  background: rgba(45, 152, 218, 0.2);
+  color: #2D98DA;
+}
+
+.jhua-meta-badge.jhua-status-done {
+  background: rgba(38, 194, 129, 0.2);
+  color: #26C281;
+}
+
+.jhua-meta-badge.jhua-type-default {
+  background: rgba(116, 185, 255, 0.15);
+  color: #74B9FF;
+}
+
+/* 进度条颜色 */
+.jhua-progress-badge {
+  background: rgba(155, 89, 182, 0.15);
+  color: #9B59B6;
+  font-size: 0.7em;
+}
+
+.jhua-progress-badge {
+  background: rgba(155, 89, 182, 0.15);
+  color: #9B59B6;
+  font-size: 0.7em;
+}
+
+.jhua-ddl-badge {
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498DB;
+}
+
+/* DDL 状态颜色 */
+.jhua-ddl-overdue {
+  background: rgba(231, 76, 60, 0.2) !important;
+  color: #e74c3c !important;
+  animation: pulse 2s infinite;
+}
+
+.jhua-ddl-urgent {
+  background: rgba(231, 76, 60, 0.15) !important;
+  color: #e74c3c !important;
+}
+
+.jhua-ddl-soon {
+  background: rgba(243, 156, 18, 0.15) !important;
+  color: #f39c12 !important;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ==================== 类型选择弹窗 ==================== */
+.jhua-type-select-modal {
+  padding: 16px;
+}
+
+.jhua-type-select-modal h2 {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.jhua-select-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.jhua-select-option {
+  padding: 8px 16px;
+  background: var(--background-modifier-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.9em;
+}
+
+.jhua-select-option:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.jhua-select-option.jhua-select-option-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  font-weight: 600;
+}
+
+/* ==================== 日期选择弹窗 ==================== */
+.jhua-date-select-modal {
+  padding: 16px;
+}
+
+.jhua-date-select-modal h2 {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.jhua-date-input {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.1em;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.jhua-date-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+
+.jhua-date-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.jhua-date-today-btn,
+.jhua-date-clear-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.jhua-date-today-btn:hover,
+.jhua-date-clear-btn:hover {
+  background: var(--background-modifier-border);
+}
+
+.jhua-date-today-btn {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+/* ==================== 标签管理弹窗 ==================== */
+.jhua-tag-manage-modal {
+  padding: 16px;
+  min-width: 400px;
+}
+
+.jhua-tag-manage-modal h2 {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.jhua-tag-manage-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  min-height: 40px;
+  padding: 12px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+}
+
+.jhua-tag-manage-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.jhua-tag-manage-item .jhua-tag {
+  margin: 0;
+}
+
+.jhua-tag-edit-btn,
+.jhua-tag-delete-btn {
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8em;
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.jhua-tag-edit-btn:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.jhua-tag-delete-btn:hover {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.jhua-tag-input-container {
+  margin-bottom: 16px;
+}
+
+.jhua-tag-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.95em;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+
+.jhua-tag-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+
+.jhua-tag-placeholder {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.jhua-tag-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 8px;
+}
+
+/* 可点击的徽章样式 */
+.jhua-meta-badge {
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.jhua-meta-badge:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .jhua-project-table-header,
+  .jhua-project-row {
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  }
+  
+  .jhua-th-tags,
+  .jhua-cell-tags {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .jhua-project-table-header,
+  .jhua-project-row {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+  }
+  
+  .jhua-th-remark,
+  .jhua-cell-remark {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .jhua-project-table-header {
+    display: none;
+  }
+  
+  .jhua-project-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .jhua-project-cell {
+    justify-content: flex-start;
+  }
+}
+
+/* ==================== 区域创建按钮 ==================== */
+
+.jhua-section-create-btn {
+  padding: 6px 14px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85em;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.jhua-section-create-btn:hover {
+  background: var(--interactive-accent-hover);
+  transform: translateY(-1px);
+}
+
+/* ==================== 通用卡片样式 ==================== */
+.jhua-card {
+  background: var(--background-secondary);
+  border-radius: 12px;
+  padding: 16px 18px;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.jhua-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.jhua-card-title {
+  font-size: 1em;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-normal);
+}
+
+.jhua-card-add-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.jhua-card-add-btn:hover {
+  background: var(--interactive-accent-hover);
+  transform: scale(1.1);
+}
+
+.jhua-card-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9em;
+  padding: 20px 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==================== 倒数日卡片（粉红色主题） ==================== */
+.jhua-countdown-card {
+  background: linear-gradient(135deg, #fff0f5 0%, #ffe4ec 100%) !important;
+  border: 1px solid rgba(255, 105, 180, 0.15);
+}
+
+.theme-dark .jhua-countdown-card {
+  background: linear-gradient(135deg, #3d1a2a 0%, #4a1e30 100%) !important;
+  border: 1px solid rgba(255, 105, 180, 0.25);
+}
+
+.jhua-countdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+}
+
+.jhua-countdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.theme-dark .jhua-countdown-item {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.jhua-countdown-item:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.theme-dark .jhua-countdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.jhua-countdown-num {
+  font-size: 1.4em;
+  font-weight: 700;
+  color: #e91e8c;
+  min-width: 36px;
+  text-align: center;
+  line-height: 1;
+}
+
+.theme-dark .jhua-countdown-num {
+  color: #ff69b4;
+}
+
+.jhua-countdown-today {
+  font-size: 1.2em !important;
+  color: #ff1493 !important;
+}
+
+.jhua-countdown-past {
+  color: var(--text-muted) !important;
+  opacity: 0.6;
+}
+
+.jhua-countdown-unit {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.jhua-countdown-name {
+  font-size: 0.9em;
+  color: var(--text-normal);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jhua-countdown-date {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.jhua-countdown-actions {
+  display: none;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.jhua-countdown-item:hover .jhua-countdown-actions {
+  display: flex;
+}
+
+.jhua-countdown-action-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75em;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.jhua-countdown-action-btn:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* ==================== 天气预报卡片 ==================== */
+.jhua-weather-card {
+  background: linear-gradient(135deg, #e8f4fd 0%, #d1ecf9 100%) !important;
+  border: 1px solid rgba(0, 136, 204, 0.12);
+}
+
+.theme-dark .jhua-weather-card {
+  background: linear-gradient(135deg, #1a2a3d 0%, #1e3045 100%) !important;
+  border: 1px solid rgba(0, 136, 204, 0.2);
+}
+
+.jhua-weather-location {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.jhua-weather-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.jhua-weather-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.jhua-weather-emoji {
+  font-size: 2em;
+  line-height: 1;
+}
+
+.jhua-weather-temp {
+  font-size: 2.2em;
+  font-weight: 700;
+  color: #0077b6;
+  line-height: 1;
+}
+
+.theme-dark .jhua-weather-temp {
+  color: #4dc9f6;
+}
+
+.jhua-weather-desc {
+  font-size: 1em;
+  color: var(--text-normal);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.jhua-weather-detail {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.jhua-weather-extras {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.jhua-weather-extra-item {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  background: rgba(0, 119, 182, 0.08);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.theme-dark .jhua-weather-extra-item {
+  background: rgba(0, 119, 182, 0.15);
+}
+
+.jhua-weather-source {
+  font-size: 0.7em;
+  color: var(--text-faint);
+  margin-top: auto;
+  text-align: center;
+}
+
+.jhua-weather-retry-btn {
+  margin-top: 8px;
+  padding: 4px 12px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+/* ==================== 今日任务卡片 ==================== */
+.jhua-daily-tasks-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+  border: 1px solid rgba(34, 197, 94, 0.15);
+}
+
+.theme-dark .jhua-daily-tasks-card {
+  background: linear-gradient(135deg, #1a2e1f 0%, #1e3825 100%) !important;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.jhua-daily-tasks-content {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.jhua-daily-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.jhua-daily-progress-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.jhua-daily-progress-pct {
+  font-weight: 600;
+  color: #22c55e;
+}
+
+.jhua-daily-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(34, 197, 94, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.jhua-daily-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  min-width: 0;
+}
+
+.jhua-daily-task-group {
+  margin-bottom: 8px;
+}
+
+.jhua-daily-task-group-label {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.jhua-daily-completed-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+
+.jhua-daily-completed-toggle:hover {
+  color: var(--text-normal);
+}
+
+.jhua-daily-task-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 0.88em;
+}
+
+.jhua-daily-task-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.theme-dark .jhua-daily-task-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.jhua-daily-task-checkbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.jhua-daily-task-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-normal);
+}
+
+.jhua-daily-task-completed .jhua-daily-task-text {
+  text-decoration: line-through;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ==================== 农历卡片（金红色主题） ==================== */
+.jhua-lunar-card {
+  background: linear-gradient(135deg, #fff8f0 0%, #ffedd5 100%) !important;
+  border: 1px solid rgba(217, 119, 6, 0.15);
+}
+
+.theme-dark .jhua-lunar-card {
+  background: linear-gradient(135deg, #2d1f0e 0%, #3d2a14 100%) !important;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+.jhua-lunar-solar-date {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.jhua-lunar-solar-text {
+  font-weight: 400;
+}
+
+.jhua-lunar-weekday {
+  background: rgba(217, 119, 6, 0.1);
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.jhua-lunar-main {
+  text-align: center;
+  margin: 4px 0;
+}
+
+.jhua-lunar-day-name {
+  font-size: 2em;
+  font-weight: 700;
+  color: #b45309;
+  line-height: 1.2;
+}
+
+.theme-dark .jhua-lunar-day-name {
+  color: #f59e0b;
+}
+
+.jhua-lunar-sub {
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.jhua-lunar-month-name {
+  font-size: 1.05em;
+  color: var(--text-normal);
+  font-weight: 500;
+}
+
+.jhua-lunar-ganzhi {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  font-size: 0.85em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.jhua-lunar-ganzhi-text {
+  background: rgba(217, 119, 6, 0.08);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.jhua-lunar-zodiac {
+  background: rgba(217, 119, 6, 0.08);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.jhua-lunar-festival {
+  text-align: center;
+  margin-top: 6px;
+}
+
+.jhua-lunar-festival-text {
+  font-size: 0.95em;
+  font-weight: 600;
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
+  padding: 3px 12px;
+  border-radius: 10px;
+}
+
+.theme-dark .jhua-lunar-festival-text {
+  color: #f87171;
+  background: rgba(220, 38, 38, 0.15);
+}
+
+/* ==================== 行布局响应式（小屏） ==================== */
+@media (max-width: 768px) {
+  .jhua-row-layout {
+    flex-direction: column !important;
+  }
+  .jhua-row-layout > div {
+    width: 100% !important;
+    min-width: auto !important;
+    max-width: 100% !important;
+    flex: none !important;
+  }
+}

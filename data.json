@@ -1,0 +1,365 @@
+{
+  "todoCachePath": "VaultSources/主页数据/todos.json",
+  "categories": [
+    {
+      "id": "cat-1",
+      "name": "Obsidian",
+      "icon": "🪛",
+      "color": "#5B93D5",
+      "items": [
+        {
+          "id": "item-1",
+          "name": "主页配置",
+          "path": "01-领域（Areas）/00-日常记录/00-主页/00-主页配置/主页配置",
+          "icon": "🏠"
+        },
+        {
+          "id": "item-2",
+          "name": "插件管理",
+          "path": "01-领域（Areas）/00-日常记录/00-主页/00-主页配置/插件管理主页",
+          "icon": "🅰️"
+        },
+        {
+          "id": "item-1774182385850",
+          "name": "按钮管理",
+          "path": "01-领域（Areas）/00-日常记录/00-主页/00-主页配置/button集合",
+          "icon": "🅱️"
+        },
+        {
+          "id": "item-1774182427195",
+          "name": "工具管理",
+          "path": "01-领域（Areas）/00-日常记录/00-主页/控制面板",
+          "icon": "🧰"
+        }
+      ]
+    },
+    {
+      "id": "cat-2",
+      "name": "个人",
+      "icon": "😏",
+      "color": "#E07B53",
+      "items": [
+        {
+          "id": "item-3",
+          "name": "通讯录",
+          "path": "01-领域（Areas）/00-日常记录/00-主页/01-个人/通讯录",
+          "icon": "👨‍👨‍👦"
+        },
+        {
+          "id": "item-1774182484587",
+          "name": "密码本",
+          "path": "file:///D:\\KeepAssXc\\KeePassXC.lnk",
+          "icon": "🔏"
+        },
+        {
+          "id": "item-1774182522130",
+          "name": "购物车",
+          "path": "01-领域（Areas）/00-日常记录/00-主页/02-生活空间/购物车",
+          "icon": "🛒"
+        },
+        {
+          "id": "item-1774182604988",
+          "name": "日记主页",
+          "path": "01-领域（Areas）/00-日常记录/00-主页/01-个人/日记",
+          "icon": "🥞"
+        }
+      ]
+    },
+    {
+      "id": "cat-1773997774683",
+      "name": "工作",
+      "icon": "📁",
+      "color": "#5B93D5",
+      "items": [
+        {
+          "id": "item-1773997804867",
+          "name": "LBE主页",
+          "path": "01-领域（Areas）/00-日常记录/00-主页/02-生活空间/工作主页",
+          "icon": "🕹️"
+        },
+        {
+          "id": "item-1774182674179",
+          "name": "自研面板",
+          "path": "01-领域（Areas）/04-工作领域/驼崽派对/驼崽派对",
+          "icon": "👨‍💻"
+        },
+        {
+          "id": "item-1774182695900",
+          "name": "⛑️",
+          "path": "Bases/Q&A.base",
+          "icon": "工作Q&A"
+        },
+        {
+          "id": "item-1774182718243",
+          "name": "禁入",
+          "path": "01-领域（Areas）/01-学习领域/觥鲓/GK导航",
+          "icon": "⛵"
+        }
+      ]
+    },
+    {
+      "id": "cat-1774182633756",
+      "name": "生活",
+      "icon": "📻",
+      "color": "#5B93D5",
+      "items": [
+        {
+          "id": "item-1774182738011",
+          "name": "足迹地图",
+          "path": "Bases/10-足迹地图.base",
+          "icon": "👣"
+        },
+        {
+          "id": "item-1774182807932",
+          "name": "家庭大小事",
+          "path": "01-领域（Areas）/03-生活领域/00-家庭事务/00-家庭事务",
+          "icon": "🏠"
+        },
+        {
+          "id": "item-1774182828237",
+          "name": "菜谱",
+          "path": "01-领域（Areas）/00-日常记录/00-主页/02-生活空间/00-菜谱",
+          "icon": "🍚"
+        },
+        {
+          "id": "item-1774182846093",
+          "name": "老虎菜烹饪研究中心",
+          "path": "02-资源（Resources）/99-不准进来/老虎菜烹饪研究中心/老虎菜烹饪研究中心",
+          "icon": "🥬"
+        }
+      ]
+    },
+    {
+      "id": "cat-1777811112403",
+      "name": "宝宝",
+      "icon": "👶",
+      "color": "#3ae4c8",
+      "items": []
+    }
+  ],
+  "bannerImage": "VaultSources/pasted_pics/【哲风壁纸】天空草地-少年奔跑.png",
+  "bannerTitle": "蟹蟹哥哥",
+  "countdowns": [],
+  "projectCreateUri": "obsidian://adv-uri?vault=JHUA-Obsidian-Vault&commandid=templater-obsidian%3Acreate-templates%2F07-%E9%A1%B9%E7%9B%AE%E6%A8%A1%E6%9D%BF.md",
+  "unorganizedCreateUri": "obsidian://adv-uri?vault=JHUA-Obsidian-Vault&commandid=templater-obsidian%3Acreate-templates%2F15-%E7%A2%8E%E7%89%87%E6%A8%A1%E6%9D%BF.md",
+  "dailyNoteTemplate": "templates/11-日记模板.md",
+  "todoSources": [
+    {
+      "id": "default-diary",
+      "alias": "每日日记",
+      "path": "01-领域（Areas）/00-日常记录/02-日记"
+    }
+  ],
+  "currentTodoSourceId": "default-diary",
+  "todoDocumentPath": "01-领域（Areas）/00-日常记录/02-日记/待办事项.md",
+  "unorganizedScanPaths": [
+    "/",
+    "00-项目（Projects）/05-碎片集合"
+  ],
+  "countdownEvents": [
+    {
+      "id": "cd-1777860325106",
+      "name": "老婆生日",
+      "date": "2026-06-20",
+      "emoji": "🎯"
+    }
+  ],
+  "weatherLatitude": 23.16,
+  "weatherLongitude": 113.15,
+  "weatherLocationName": "里水镇",
+  "modules": {
+    "quick-nav": {
+      "enabled": true,
+      "order": 1,
+      "span": 4,
+      "config": {}
+    },
+    "todo-list": {
+      "enabled": true,
+      "order": 2,
+      "span": 2,
+      "config": {}
+    },
+    "project-tracking": {
+      "enabled": true,
+      "order": 3,
+      "span": 2,
+      "config": {}
+    },
+    "unorganized-files": {
+      "enabled": true,
+      "order": 4,
+      "span": 2,
+      "config": {}
+    },
+    "recent-files": {
+      "enabled": true,
+      "order": 5,
+      "span": 2,
+      "config": {}
+    }
+  },
+  "navGroups": {
+    "homepage": [
+      {
+        "id": "cat-1",
+        "name": "Obsidian",
+        "icon": "🪛",
+        "color": "#5B93D5",
+        "items": [
+          {
+            "id": "item-1",
+            "name": "主页配置",
+            "path": "01-领域（Areas）/00-日常记录/00-主页/USAGE",
+            "icon": "🏠"
+          },
+          {
+            "id": "item-2",
+            "name": "插件管理",
+            "path": "01-领域（Areas）/00-日常记录/00-主页/00-主页配置/插件管理主页",
+            "icon": "🅰️"
+          },
+          {
+            "id": "item-1774182385850",
+            "name": "按钮管理",
+            "path": "01-领域（Areas）/00-日常记录/00-主页/00-主页配置/button集合",
+            "icon": "🅱️"
+          },
+          {
+            "id": "item-1774182427195",
+            "name": "工具管理",
+            "path": "01-领域（Areas）/00-日常记录/00-主页/控制面板",
+            "icon": "🧰"
+          }
+        ]
+      },
+      {
+        "id": "cat-2",
+        "name": "个人",
+        "icon": "😏",
+        "color": "#E07B53",
+        "items": [
+          {
+            "id": "item-3",
+            "name": "通讯录",
+            "path": "01-领域（Areas）/00-日常记录/00-主页/01-个人/通讯录",
+            "icon": "👨‍👨‍👦"
+          },
+          {
+            "id": "item-1774182484587",
+            "name": "密码本",
+            "path": "file:///D:\\KeepAssXc\\KeePassXC.lnk",
+            "icon": "🔏"
+          },
+          {
+            "id": "item-1774182522130",
+            "name": "购物车",
+            "path": "01-领域（Areas）/00-日常记录/00-主页/02-生活空间/购物车",
+            "icon": "🛒"
+          },
+          {
+            "id": "item-1774182604988",
+            "name": "日记主页",
+            "path": "01-领域（Areas）/00-日常记录/00-主页/01-个人/日记",
+            "icon": "🥞"
+          }
+        ]
+      },
+      {
+        "id": "cat-1773997774683",
+        "name": "工作",
+        "icon": "📁",
+        "color": "#5B93D5",
+        "items": [
+          {
+            "id": "item-1773997804867",
+            "name": "LBE主页",
+            "path": "01-领域（Areas）/00-日常记录/00-主页/02-生活空间/工作主页",
+            "icon": "🕹️"
+          },
+          {
+            "id": "item-1774182674179",
+            "name": "自研面板",
+            "path": "01-领域（Areas）/04-工作领域/驼崽派对/驼崽派对",
+            "icon": "👨‍💻"
+          },
+          {
+            "id": "item-1774182695900",
+            "name": "⛑️",
+            "path": "Bases/Q&A.base",
+            "icon": "工作Q&A"
+          },
+          {
+            "id": "item-1774182718243",
+            "name": "禁入",
+            "path": "01-领域（Areas）/01-学习领域/觥鲓/GK导航",
+            "icon": "⛵"
+          }
+        ]
+      },
+      {
+        "id": "cat-1774182633756",
+        "name": "生活",
+        "icon": "📻",
+        "color": "#5B93D5",
+        "items": [
+          {
+            "id": "item-1774182738011",
+            "name": "足迹地图",
+            "path": "Bases/10-足迹地图.base",
+            "icon": "👣"
+          },
+          {
+            "id": "item-1774182807932",
+            "name": "家庭大小事",
+            "path": "01-领域（Areas）/03-生活领域/00-家庭事务/00-家庭事务",
+            "icon": "🏠"
+          },
+          {
+            "id": "item-1774182828237",
+            "name": "菜谱",
+            "path": "01-领域（Areas）/00-日常记录/00-主页/02-生活空间/00-菜谱",
+            "icon": "🍚"
+          },
+          {
+            "id": "item-1774182846093",
+            "name": "老虎菜烹饪研究中心",
+            "path": "02-资源（Resources）/99-不准进来/老虎菜烹饪研究中心/老虎菜烹饪研究中心",
+            "icon": "🥬"
+          }
+        ]
+      }
+    ],
+    "home": [
+      {
+        "id": "cat-1777813087182",
+        "name": "宝宝",
+        "icon": "👶",
+        "color": "#5B93D5",
+        "items": [
+          {
+            "id": "item-1777863346275",
+            "name": "出生信息",
+            "path": "01-领域（Areas）/03-生活领域/00-家庭事务/予予宝宝/出生信息",
+            "icon": "📄"
+          }
+        ]
+      },
+      {
+        "id": "cat-1777823969339",
+        "name": "网络",
+        "icon": "🛜",
+        "color": "#5B93D5",
+        "items": [
+          {
+            "id": "item-1777824398190",
+            "name": "路由配置",
+            "path": "03-档案（Archives）/00-已完成项目/02-生活项目/2026-01-08-家里统一路由AP模式/家里统一路由AP模式",
+            "icon": "🛜"
+          }
+        ]
+      }
+    ],
+    "study": []
+  }
+}

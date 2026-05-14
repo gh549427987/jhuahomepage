@@ -1,0 +1,27 @@
+{
+  "name": "jhua-hpage",
+  "version": "1.0.0",
+  "description": "个人生活工作学习中控台 - Obsidian主页插件",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production"
+  },
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "homepage",
+    "dashboard"
+  ],
+  "author": "Jhua",
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.17.0",
+    "obsidian": "latest",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "yaml": "^2.8.4"
+  }
+}

@@ -134,6 +134,8 @@ modules:
 | `contacts-card` | 👥 通讯录卡片 | 行内标签 | 多排序/分组方式 |
 | `cuoti-card` | ❌ 错题卡片 | 代码块 | 题目+选项+解析可视化 |
 | `progress-card` | 📈 进度记录卡片 | 代码块 | 时间线进度追踪 |
+| `daily-note` | 📓 一体化日记 | 代码块 | 富文本编辑/日历导航/标签追踪/任务 |
+| `ower` | 🪪 个人名片 | 行内标签 | 头像/昵称/座右铭/统计语句/9维雷达图 |
 
 > 💡 **行内标签** = `{{jhua-hpage:模块ID?参数}}` 格式
 > 💡 **代码块** = ` ```代码块名 ` + YAML/文本格式，见各组件说明
@@ -435,6 +437,85 @@ kaodian: 考点
 
 ---
 
+### 一体化日记 `daily-note` （代码块）
+
+```markdown
+```jhua-daily-note
+date: 2026-05-19
+showTracking: true
+showDiary: true
+showTasks: true
+showDone: true
+showPhotos: false
+showCalendar: false
+```
+```
+
+也可以无参数（默认今天）：
+```markdown
+```jhua-daily-note
+```
+```
+
+| 参数 | 说明 | 可选值 | 默认值 |
+|------|------|--------|--------|
+| `date` | 📅 显示的日记日期 | `YYYY-MM-DD` 格式 | 今天 |
+| `showTracking` | 🏷️ 显示标签追踪区 | `true` / `false` | `true` |
+| `showDiary` | 📓 显示日记正文编辑区 | `true` / `false` | `true` |
+| `showTasks` | ✅ 显示当日待办任务 | `true` / `false` | `true` |
+| `showDone` | ☑️ 显示已完成任务 | `true` / `false` | `true` |
+| `showPhotos` | 📷 显示照片区 | `true` / `false` | `false` |
+| `showCalendar` | 📆 显示内联日历 | `true` / `false` | `false` |
+
+> 📓 一体化日记组件，集成日历导航、标签追踪、富文本编辑、待办任务于一体
+> ✏️ **富文本编辑**：编辑状态下自动浮现浮动工具栏，选中文本即可格式化
+> 🎨 支持 9 种格式：**加粗**、*斜体*、~~删除线~~、`行内代码`、==高亮==、二级标题、分割线、🎨自定义字体颜色、🖍多色高亮
+> 💡 高亮支持 5 种预设色：默认黄、绿、蓝、粉、橙，点击工具栏🖍按钮选色
+> 💡 字体颜色支持 8 种预设色 + 自定义取色器，点击工具栏🎨按钮选色
+> 💡 数据存储为纯 Markdown，完全兼容历史日记，编辑后自动保存
+> 💡 日记路径可在插件设置页的「日记文件夹配置」区域设置
+
+---
+
+### 个人名片 `ower`
+
+```markdown
+{{jhua-hpage:ower}}
+```
+
+| 参数 | 说明 | 可选值 | 默认值 |
+|------|------|--------|--------|
+| `span` | 宽度比例 | `1` / `2` / `3` / `4` | `2` |
+
+> 🪪 个人名片组件，展示头像、昵称、座右铭、统计语句、9维雷达图
+> 💡 头像、昵称、座右铭等在**插件设置页**的「🪪 个人名片设置」区域配置
+> 💡 头像上传后保存到 `VaultSources/主页数据/ower-avatar.png`
+> 💡 统计语句支持 `{参数}` 占位符，如 `{daysAlive}天的旅程，{totalNotes}篇笔记`
+> 💡 设置页提供 4 个预设模板一键填入，也可自由编辑
+
+**统计语句可用参数：**
+
+| 参数 | 说明 |
+|------|------|
+| `{daysAlive}` | 距出生日天数（需设置生日） |
+| `{totalNotes}` | 笔记文档总数 |
+| `{diaryCount}` | 日记数量 |
+| `{attachmentCount}` | 附件数量 |
+| `{taskCompletionRate}` | 任务完成率(%) |
+| `{tagCount}` | 标签数量 |
+| `{linkDensity}` | 链接密度(%) |
+| `{folderCount}` | 文件夹数量 |
+| `{propertyCount}` | 属性数量 |
+| `{activity}` | 活跃度(%) |
+| `{activeDays}` | 近30天活跃天数 |
+
+**雷达图 9 维度：** 附件、笔记、完成率、活跃度、标签、链接密度、文件夹、属性、日记
+
+> 💡 雷达图数据从 Vault 实时计算，归一化后映射到 0-1 区间绘制
+> 💡 设置生日后，统计语句中的 `{daysAlive}` 才会显示天数
+
+---
+
 ## 📚 常用示例大全（复制直接用）
 
 ### 1. 农历+天气+倒数日+今日任务 四卡片行
@@ -541,6 +622,48 @@ kaodian: 图形推理-共性规律
 ```
 ```
 
+### 11. 一体化日记（默认今天）
+
+```markdown
+```jhua-daily-note
+```
+```
+
+### 12. 一体化日记（指定日期 + 完整功能）
+
+```markdown
+```jhua-daily-note
+date: 2026-05-19
+showTracking: true
+showDiary: true
+showTasks: true
+showDone: true
+showPhotos: false
+showCalendar: true
+```
+```
+
+### 13. 个人名片
+
+```markdown
+{{jhua-hpage:ower}}
+```
+
+### 14. 个人名片 + 最近文档 左右并排
+
+```markdown
+{{jhua-hpage:ower?span=2&right=recent-files}}
+```
+
+### 15. 个人名片 + 日记 一体化布局
+
+```markdown
+{{jhua-hpage:ower?span=2}}
+
+```jhua-daily-note
+```
+```
+
 ---
 
 ## ⚠️ 注意事项
@@ -556,3 +679,7 @@ kaodian: 图形推理-共性规律
 9. 日记模板路径可在插件设置页的「日记模板路径」区域配置，默认 `templates/11-日记模板.md`
 10. 待办数据源可在插件设置页的「待办数据源」区域配置，支持自定义路径和标签过滤
 11. 全局刷新命令「刷新主页组件」(refresh-hpage) 已注册，可在 Obsidian 命令面板中搜索绑定快捷键
+12. 个人名片(ower)组件默认未启用，需在设置页「🪪 个人名片设置」中开启，或在主页代码块中添加 `{{jhua-hpage:ower}}`
+13. 个人名片的头像/昵称/座右铭/生日/统计语句均在**插件设置页**配置，不支持行内参数传入
+14. 一体化日记(daily-note)使用 ` ```jhua-daily-note ` 代码块调用，不是行内标签格式
+15. 日记富文本编辑器编辑时自动浮现工具栏，无需手动触发，数据存储为纯 Markdown 格式

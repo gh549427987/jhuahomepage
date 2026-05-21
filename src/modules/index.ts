@@ -12,6 +12,8 @@ import { ParaExplorerModule } from './para-explorer';
 import { ParaExplorerV2Module } from './para-explorer-v2';
 import { ContactsCardModule } from './contacts-card';
 import { DailyNoteModule } from './daily-note';
+import { OwerCardModule } from './ower-card';
+import { ProjectHomeModule } from './project-home';
 
 // 所有模块统一注册在这里
 export const MODULES: HPageModule[] = [
@@ -28,6 +30,8 @@ export const MODULES: HPageModule[] = [
   new ParaExplorerV2Module(),
   new ContactsCardModule(),
   new DailyNoteModule(),
+  new OwerCardModule(),
+  new ProjectHomeModule(),
 ];
 
 // 根据ID获取模块

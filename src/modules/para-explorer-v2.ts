@@ -333,36 +333,159 @@ export class ParaExplorerV2Module implements HPageModule {
 				const isProjectSection = key === PROJECT_SECTION_KEY;
 				const maxItems = params.maxItems || 8;
 
-				// ---- 项目栏：一级分类标签 + 二级项目 ----
-				if (isProjectSection) {
-			// 收集一级分类（子文件夹）
-				const categories = baseFolder.children
-					.filter(c => c instanceof TFolder) as TFolder[];
-				categories.sort((a, b) => {
-					// 一级分类始终按数字前缀排序
-					return getPrefixNumber(a.name) - getPrefixNumber(b.name) || a.name.localeCompare(b.name, 'zh-CN');
+			// ---- 项目栏 ----
+			if (isProjectSection) {
+			if (isShallowP0()) {
+				// 浅层 P0：直接子文件夹就是项目，无需分类分组
+				const projects = (baseFolder.children
+					.filter(c => c instanceof TFolder) as TFolder[])
+					.filter(p => {
+						const st = getFolderStatus(p);
+						return st !== 'completed';
+					});
+
+				const headerCount = headerEl.createSpan({ cls: 'pe2-section-count' });
+				headerCount.textContent = `${projects.length}`;
+
+				const listEl = sectionEl.createDiv({ cls: 'pe2-section-list' });
+
+				projects.sort((a, b) => {
+					switch (overviewSortBy) {
+						case 'name-asc': return a.name.localeCompare(b.name, 'zh-CN');
+						case 'name-desc': return b.name.localeCompare(a.name, 'zh-CN');
+						case 'prefix-asc': {
+							const pa = getPrefixNumber(a.name);
+							const pb = getPrefixNumber(b.name);
+							if (pa !== pb) return pa - pb;
+							return a.name.localeCompare(b.name, 'zh-CN');
+						}
+						case 'mtime-asc': return getFolderMtime(a) - getFolderMtime(b);
+						case 'mtime-desc':
+						default: return getFolderMtime(b) - getFolderMtime(a);
+					}
 				});
 
-					// 统计所有二级项目数
-					let totalProjects = 0;
-					for (const cat of categories) {
-						totalProjects += cat.children.filter(c => c instanceof TFolder).length;
+				for (const project of projects) {
+					const status = getFolderStatus(project) || 'active';
+					if (status === 'active') totalActive++;
+					if (status === 'paused') totalPaused++;
+					totalFiles += countAllFiles(project);
+
+					const { folders: subF, files: subFi } = countDirectChildren(project);
+					const mtime = getFolderMtime(project);
+					const mtimeStr = mtime > 0 ? formatDate(mtime) : '';
+
+					const itemEl = listEl.createDiv({ cls: `pe2-project-item pe2-project-${status}` });
+
+					const statusEl = itemEl.createSpan({ cls: 'pe2-project-status' });
+					if (status === 'active') statusEl.textContent = '🟢';
+					else if (status === 'paused') statusEl.textContent = '🟡';
+					else statusEl.textContent = '📁';
+
+					const infoContainer = itemEl.createDiv({ cls: 'pe2-project-info' });
+					const nameEl = infoContainer.createDiv({ cls: 'pe2-project-name' });
+					nameEl.textContent = project.name;
+
+					const metaEl = infoContainer.createDiv({ cls: 'pe2-project-meta' });
+					let metaText = `📁${subF} 📄${subFi}`;
+					if (mtimeStr) metaText += ` · ${mtimeStr}`;
+					if (status === 'paused') metaText += ' · 已暂停';
+					metaEl.textContent = metaText;
+
+					const actionsEl = itemEl.createDiv({ cls: 'pe2-project-actions' });
+
+					if (status === 'active') {
+						const pauseBtn = actionsEl.createEl('button', {
+							cls: 'pe2-action-btn pe2-action-pause',
+							text: '⏸',
+							attr: { title: '暂停项目' }
+						});
+						pauseBtn.addEventListener('click', async (e) => {
+							e.stopPropagation();
+							await setFolderStatus(project, 'paused');
+							new Notice(`已暂停: ${project.name}`);
+							renderOverview();
+						});
+					} else if (status === 'paused') {
+						const reactivateBtn = actionsEl.createEl('button', {
+							cls: 'pe2-action-btn pe2-action-reactivate',
+							text: '▶',
+							attr: { title: '重新激活' }
+						});
+						reactivateBtn.addEventListener('click', async (e) => {
+							e.stopPropagation();
+							await setFolderStatus(project, 'active');
+							new Notice(`已重新激活: ${project.name}`);
+							renderOverview();
+						});
 					}
 
-					const headerCount = headerEl.createSpan({ cls: 'pe2-section-count' });
-					headerCount.textContent = `${totalProjects}`;
+					if (status === 'active' || status === 'paused') {
+						const archiveBtn = actionsEl.createEl('button', {
+							cls: 'pe2-action-btn pe2-action-archive',
+							text: '✅',
+							attr: { title: '完成并归档' }
+						});
+						archiveBtn.addEventListener('click', (e) => {
+							e.stopPropagation();
+							showArchiveConfirmModal(project);
+						});
+					}
 
-					const listEl = sectionEl.createDiv({ cls: 'pe2-section-list' });
+					itemEl.addEventListener('click', () => {
+						explorerCurrentSection = key;
+						explorerHistory = [project.path];
+						explorerHistoryIndex = 0;
+						switchView('explorer');
+					});
 
-					let totalDisplayed = 0;
-					for (const catFolder of categories) {
-						// 二级项目
-						const projects = (catFolder.children
-							.filter(c => c instanceof TFolder) as TFolder[])
-							.filter(p => {
-								const st = getFolderStatus(p);
-								return st !== 'completed'; // 已归档不显示
-							});
+					itemEl.addEventListener('contextmenu', (e) => {
+						e.preventDefault();
+						showOverviewContextMenu(e, project, key, status);
+					});
+				}
+
+				const footerEl = sectionEl.createDiv({ cls: 'pe2-section-footer' });
+				footerEl.textContent = `🚀${projects.length}个项目`;
+
+				const newProjectBtn = sectionEl.createEl('button', {
+					cls: 'pe2-new-project-btn',
+					text: '+ 新建项目'
+				});
+				newProjectBtn.addEventListener('click', () => {
+					showNewProjectModal(basePath);
+				});
+
+			} else {
+			// 深层 P0：一级分类标签 + 二级项目
+			// 收集一级分类（子文件夹）
+			const categories = baseFolder.children
+				.filter(c => c instanceof TFolder) as TFolder[];
+			categories.sort((a, b) => {
+				// 一级分类始终按数字前缀排序
+				return getPrefixNumber(a.name) - getPrefixNumber(b.name) || a.name.localeCompare(b.name, 'zh-CN');
+			});
+
+				// 统计所有二级项目数
+				let totalProjects = 0;
+				for (const cat of categories) {
+					totalProjects += cat.children.filter(c => c instanceof TFolder).length;
+				}
+
+				const headerCount = headerEl.createSpan({ cls: 'pe2-section-count' });
+				headerCount.textContent = `${totalProjects}`;
+
+				const listEl = sectionEl.createDiv({ cls: 'pe2-section-list' });
+
+				let totalDisplayed = 0;
+				for (const catFolder of categories) {
+					// 二级项目
+					const projects = (catFolder.children
+						.filter(c => c instanceof TFolder) as TFolder[])
+						.filter(p => {
+							const st = getFolderStatus(p);
+							return st !== 'completed'; // 已归档不显示
+						});
 
 						if (projects.length === 0) continue;
 
@@ -377,7 +500,7 @@ export class ParaExplorerV2Module implements HPageModule {
 							switchView('explorer');
 						});
 
-				// 排序：使用概览排序规则
+			// 排序：使用概览排序规则
 					projects.sort((a, b) => {
 						switch (overviewSortBy) {
 							case 'name-asc': return a.name.localeCompare(b.name, 'zh-CN');
@@ -508,12 +631,14 @@ export class ParaExplorerV2Module implements HPageModule {
 						cls: 'pe2-new-project-btn',
 						text: '+ 新建项目'
 					});
-					newProjectBtn.addEventListener('click', () => {
-						showNewProjectModal(basePath);
-					});
+				newProjectBtn.addEventListener('click', () => {
+					showNewProjectModal(basePath);
+				});
 
-				// ---- 其他栏（A1/R2/A3）：保持原有逻辑 ----
-				} else {
+			} // end of deep P0 else
+
+			// ---- 其他栏（A1/R2/A3）：保持原有逻辑 ----
+			} else {
 					const children = baseFolder.children.slice();
 					const { folders, files } = countDirectChildren(baseFolder);
 					const itemCount = children.length;
@@ -842,6 +967,11 @@ export class ParaExplorerV2Module implements HPageModule {
 			const parentFolder = folder.parent;
 			if (!parentFolder) return `${archiveBase}/${folder.name}`;
 
+			// 浅层 P0：项目直接在 P0 下，归档到 A3/folder.name
+			if (isShallowP0()) {
+				return `${archiveBase}/${folder.name}`;
+			}
+
 			// 判断父目录是否为项目根目录的直接子目录（一级分类）
 			const projectBase = params.P0;
 			if (projectBase && parentFolder.path === projectBase) {
@@ -868,10 +998,25 @@ export class ParaExplorerV2Module implements HPageModule {
 			);
 		}
 
+		// 判断 P0 是否为"浅层"结构（直接子文件夹就是项目，不含二级分类）
+		function isShallowP0(): boolean {
+			const projectBase = params.P0;
+			if (!projectBase) return false;
+			const baseFolder = app.vault.getAbstractFileByPath(projectBase);
+			if (!(baseFolder instanceof TFolder)) return false;
+			const subFolders = baseFolder.children.filter(c => c instanceof TFolder) as TFolder[];
+			// 如果 P0 没有子文件夹，视为浅层
+			if (subFolders.length === 0) return true;
+			// 如果 P0 的子文件夹中没有任何一个拥有子文件夹，视为浅层
+			return !subFolders.some(sf => sf.children.some(c => c instanceof TFolder));
+		}
+
 		// 获取项目分类的一级子目录列表（如 00-工作项目, 01-学习项目 等）
+		// 浅层 P0 返回空数组
 		function getProjectSubCategories(): TFolder[] {
 			const projectBase = params.P0;
 			if (!projectBase) return [];
+			if (isShallowP0()) return [];
 			const baseFolder = app.vault.getAbstractFileByPath(projectBase);
 			if (!(baseFolder instanceof TFolder)) return [];
 			return baseFolder.children.filter(c => c instanceof TFolder) as TFolder[];
@@ -954,29 +1099,32 @@ export class ParaExplorerV2Module implements HPageModule {
 					autoInfo.style.fontSize = '13px';
 				}
 
-				let selectedCategory = '';
-				if (subCategories.length > 0) {
-					new Setting(content)
-						.setName('目标分类')
-						.setDesc('选择项目要放入的项目子分类')
-						.addDropdown((dropdown) => {
-							for (const sf of subCategories) {
-								dropdown.addOption(sf.path, sf.name);
+			let selectedCategory = '';
+			if (subCategories.length > 0) {
+				new Setting(content)
+					.setName('目标分类')
+					.setDesc('选择项目要放入的项目子分类')
+					.addDropdown((dropdown) => {
+						for (const sf of subCategories) {
+							dropdown.addOption(sf.path, sf.name);
+						}
+						// 如果检测到原分类，默认选中它
+						if (fromArchive && detectedCategory) {
+							const matchSub = subCategories.find(sf => sf.name === detectedCategory);
+							if (matchSub) {
+								dropdown.setValue(matchSub.path);
+								selectedCategory = matchSub.path;
 							}
-							// 如果检测到原分类，默认选中它
-							if (fromArchive && detectedCategory) {
-								const matchSub = subCategories.find(sf => sf.name === detectedCategory);
-								if (matchSub) {
-									dropdown.setValue(matchSub.path);
-									selectedCategory = matchSub.path;
-								}
-							}
-							if (!selectedCategory && subCategories.length > 0) {
-								selectedCategory = subCategories[0].path;
-							}
-							dropdown.onChange((value) => { selectedCategory = value; });
-						});
-				}
+						}
+						if (!selectedCategory && subCategories.length > 0) {
+							selectedCategory = subCategories[0].path;
+						}
+						dropdown.onChange((value) => { selectedCategory = value; });
+					});
+			} else {
+				// 浅层 P0 或无子分类：直接使用 P0 作为目标
+				selectedCategory = projectBase;
+			}
 
 				const buttonContainer = content.createDiv();
 				buttonContainer.style.display = 'flex';
@@ -1031,26 +1179,29 @@ export class ParaExplorerV2Module implements HPageModule {
 				tipInfo.style.color = 'var(--text-muted)';
 				tipInfo.style.fontSize = '13px';
 
-				let selectedCategory = '';
-				if (subCategories.length > 0) {
-					new Setting(content)
-						.setName('目标分类')
-						.setDesc('选择项目要放入的项目子分类')
-						.addDropdown((dropdown) => {
-							for (const sf of subCategories) {
-								dropdown.addOption(sf.path, sf.name);
-							}
-							// 默认选中 05-碎片集合
-							const defaultSub = subCategories.find(sf => sf.name === '05-碎片集合');
-							if (defaultSub) {
-								dropdown.setValue(defaultSub.path);
-								selectedCategory = defaultSub.path;
-							} else if (subCategories.length > 0) {
-								selectedCategory = subCategories[0].path;
-							}
-							dropdown.onChange((value) => { selectedCategory = value; });
-						});
-				}
+			let selectedCategory = '';
+			if (subCategories.length > 0) {
+				new Setting(content)
+					.setName('目标分类')
+					.setDesc('选择项目要放入的项目子分类')
+					.addDropdown((dropdown) => {
+						for (const sf of subCategories) {
+							dropdown.addOption(sf.path, sf.name);
+						}
+						// 默认选中 05-碎片集合
+						const defaultSub = subCategories.find(sf => sf.name === '05-碎片集合');
+						if (defaultSub) {
+							dropdown.setValue(defaultSub.path);
+							selectedCategory = defaultSub.path;
+						} else if (subCategories.length > 0) {
+							selectedCategory = subCategories[0].path;
+						}
+						dropdown.onChange((value) => { selectedCategory = value; });
+					});
+			} else {
+				// 浅层 P0 或无子分类：直接使用 P0 作为目标
+				selectedCategory = projectBase;
+			}
 
 				const buttonContainer = content.createDiv();
 				buttonContainer.style.display = 'flex';
@@ -1244,6 +1395,9 @@ A3:
 			let selectedSubFolder = '';
 			let nameInput: HTMLInputElement;
 
+			// 判断是否为浅层 P0（无需子分类选择）
+			const shallow = isShallowP0();
+
 			// 项目名称
 			new Setting(content)
 				.setName('项目名称')
@@ -1254,26 +1408,36 @@ A3:
 					text.onChange((value) => { projectName = value; });
 				});
 
-			// 子分类选择（无"根目录"选项，默认00-工作项目）
-			const baseFolder = app.vault.getAbstractFileByPath(basePath);
-			if (baseFolder instanceof TFolder) {
-				const subFolders = baseFolder.children.filter(c => c instanceof TFolder) as TFolder[];
-				if (subFolders.length > 0) {
-					subFolders.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
-					// 默认选中"00-工作项目"，找不到则取排序后第一个
-					const defaultSub = subFolders.find(sf => sf.name === '00-工作项目') || subFolders[0];
-					selectedSubFolder = defaultSub.path;
+			if (shallow) {
+				// 浅层模式：直接在 P0 下创建，无需子分类
+				selectedSubFolder = basePath;
+			} else {
+				// 子分类选择（无"根目录"选项，默认00-工作项目）
+				const baseFolder = app.vault.getAbstractFileByPath(basePath);
+				if (baseFolder instanceof TFolder) {
+					const subFolders = baseFolder.children.filter(c => c instanceof TFolder) as TFolder[];
+					if (subFolders.length > 0) {
+						subFolders.sort((a, b) => a.name.localeCompare(b.name, 'zh'));
+						// 默认选中"00-工作项目"，找不到则取排序后第一个
+						const defaultSub = subFolders.find(sf => sf.name === '00-工作项目') || subFolders[0];
+						selectedSubFolder = defaultSub.path;
 
-					new Setting(content)
-						.setName('子分类')
-						.setDesc('选择项目所在子文件夹')
-						.addDropdown((dropdown) => {
-							for (const sf of subFolders) {
-								dropdown.addOption(sf.path, sf.name);
-							}
-							dropdown.setValue(defaultSub.path);
-							dropdown.onChange((value) => { selectedSubFolder = value; });
-						});
+						new Setting(content)
+							.setName('子分类')
+							.setDesc('选择项目所在子文件夹')
+							.addDropdown((dropdown) => {
+								for (const sf of subFolders) {
+									dropdown.addOption(sf.path, sf.name);
+								}
+								dropdown.setValue(defaultSub.path);
+								dropdown.onChange((value) => { selectedSubFolder = value; });
+							});
+					} else {
+						// 无子文件夹，直接在 P0 下创建
+						selectedSubFolder = basePath;
+					}
+				} else {
+					selectedSubFolder = basePath;
 				}
 			}
 
@@ -1304,9 +1468,9 @@ A3:
 					}
 					await app.vault.createFolder(targetPath);
 
-				// 从子分类推导项目类型
-				const subFolderName = selectedSubFolder.split('/').pop() || '';
-				const projectType = getSubFolderType(subFolderName);
+					// 从子分类推导项目类型
+					const subFolderName = selectedSubFolder.split('/').pop() || '';
+					const projectType = getSubFolderType(subFolderName);
 
 					// 创建 folder note（参照项目模板格式）
 					const folderNotePath = `${targetPath}/${name}.md`;

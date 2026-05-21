@@ -9,7 +9,7 @@ interface DailyNoteData {
 	filePath: string;
 	frontmatter: Record<string, any>;
 	tracking: { text: string; raw: string }[];  // 🚦Tracking 事件列表（纯列表，无勾选框）
-	dairy: string;      // 📒Dairy 板块内容
+	diary: string;      // 📒Diary 板块内容
 	tasks: { text: string; completed: boolean; raw: string }[];    // 📖Tasks
 	doneItems: { text: string; raw: string }[];  // 🎖️Done 列表项
 	photos: string;     // 照片瀑布流 code block 内容
@@ -19,26 +19,64 @@ interface DailyNoteData {
 /** 板块标题定义（与日记模板一致） */
 const SECTION_HEADERS = [
 	{ emoji: '🚦', key: 'Tracking', label: '追踪' },
-	{ emoji: '📒', key: 'Dairy', label: '日记' },
+	{ emoji: '📒', key: 'Diary', label: '日记' },
 	{ emoji: '📖', key: 'Tasks', label: '待办' },
 	{ emoji: '🎖️', key: 'Done', label: '已完成' },
 ];
 
-// ==================== 常用 Tracking 标签持久化 ====================
+// ==================== 常用 Tracking 标签持久化（含颜色） ====================
 
 const TRACKING_TAGS_KEY = 'jhua-dn-tracking-tags';
 const SHOW_CALENDAR_KEY = 'jhua-dn-show-calendar';
 
-function loadTrackingTags(): string[] {
+/** 预设颜色盘 */
+const TAG_COLOR_PALETTE = [
+	{ name: '珊瑚红', value: '#ef4444' },
+	{ name: '橙色', value: '#f97316' },
+	{ name: '琥珀', value: '#f59e0b' },
+	{ name: '翠绿', value: '#22c55e' },
+	{ name: '天蓝', value: '#3b82f6' },
+	{ name: '紫罗兰', value: '#8b5cf6' },
+	{ name: '粉色', value: '#ec4899' },
+	{ name: '青色', value: '#06b6d4' },
+	{ name: '靛蓝', value: '#6366f1' },
+	{ name: '石灰', value: '#84cc16' },
+];
+
+/** 标签结构（含颜色） */
+interface TrackingTag {
+	name: string;
+	color: string;
+}
+
+function loadTrackingTags(): TrackingTag[] {
 	try {
 		const raw = localStorage.getItem(TRACKING_TAGS_KEY);
-		return raw ? JSON.parse(raw) : ['上班', '买菜', '午觉', '蛐蛐'];
+		if (!raw) return getDefaultTags();
+		const parsed = JSON.parse(raw);
+		// 兼容旧版：如果是纯字符串数组，迁移为新格式
+		if (parsed.length > 0 && typeof parsed[0] === 'string') {
+			const migrated = (parsed as string[]).map((name: string, i: number) => ({
+				name,
+				color: TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length].value,
+			}));
+			saveTrackingTags(migrated);
+			return migrated;
+		}
+		return parsed as TrackingTag[];
 	} catch {
-		return ['上班', '买菜', '午觉', '蛐蛐'];
+		return getDefaultTags();
 	}
 }
 
-function saveTrackingTags(tags: string[]): void {
+function getDefaultTags(): TrackingTag[] {
+	return ['上班', '买菜', '午觉', '蛐蛐'].map((name, i) => ({
+		name,
+		color: TAG_COLOR_PALETTE[i % TAG_COLOR_PALETTE.length].value,
+	}));
+}
+
+function saveTrackingTags(tags: TrackingTag[]): void {
 	localStorage.setItem(TRACKING_TAGS_KEY, JSON.stringify(tags));
 }
 
@@ -73,7 +111,7 @@ export function parseDailyNote(content: string): DailyNoteData {
 		filePath: '',
 		frontmatter: {},
 		tracking: [],
-		dairy: '',
+		diary: '',
 		tasks: [],
 		doneItems: [],
 		photos: '',
@@ -151,11 +189,11 @@ export function parseDailyNote(content: string): DailyNoteData {
 				});
 				continue;
 			}
-			// 匹配纯列表项: - 事件
+			// 匹配纯列表项: - 事件（修复：用 listMatch[2] 获取正文，而非 listMatch[1] 的空白）
 			const listMatch = line.match(/^(\s*)- (.+)$/);
-			if (listMatch && listMatch[1].trim()) {
+			if (listMatch && listMatch[2].trim()) {
 				data.tracking.push({
-					text: listMatch[1].trim(),
+					text: listMatch[2].trim(),
 					raw: line,
 				});
 				continue;
@@ -163,12 +201,12 @@ export function parseDailyNote(content: string): DailyNoteData {
 		}
 	}
 
-	// 提取 Dairy 内容
-	if (sectionPositions['Dairy'] !== undefined) {
-		const start = sectionPositions['Dairy'] + 1;
+	// 提取 Diary 内容
+	if (sectionPositions['Diary'] !== undefined) {
+		const start = sectionPositions['Diary'] + 1;
 		const end = findNextSectionEnd(lines, start, sectionPositions);
-		const dairyLines = lines.slice(start, end);
-		data.dairy = dairyLines.join('\n').trim();
+		const diaryLines = lines.slice(start, end);
+		data.diary = diaryLines.join('\n').trim();
 	}
 
 	// 提取 Tasks（checkbox 列表）
@@ -187,14 +225,13 @@ export function parseDailyNote(content: string): DailyNoteData {
 		}
 	}
 
-	// 提取 Done 内容（纯列表项）
+	// 提取 Done 内容（纯列表项，修复：用 listMatch[2] 获取正文）
 	if (sectionPositions['Done'] !== undefined) {
 		const start = sectionPositions['Done'] + 1;
 		const end = Math.min(
 			photoStart >= 0 ? photoStart : lines.length,
 			lines.length
 		);
-		// 找到下一个板块标题或照片
 		let doneEnd = end;
 		for (let i = start; i < end; i++) {
 			if (/^#\s*[🚦📒📖🎖️🖼️]/.test(lines[i]) || lines[i].trim().startsWith('```ad-col4')) {
@@ -204,11 +241,11 @@ export function parseDailyNote(content: string): DailyNoteData {
 		}
 		for (let i = start; i < doneEnd; i++) {
 			const line = lines[i];
-			// 纯列表项: - 完成项目A
+			// 纯列表项: - 完成项目A（修复：listMatch[2] 才是正文）
 			const listMatch = line.match(/^(\s*)- (.+)$/);
-			if (listMatch && listMatch[1].trim()) {
+			if (listMatch && listMatch[2].trim()) {
 				data.doneItems.push({
-					text: listMatch[1].trim(),
+					text: listMatch[2].trim(),
 					raw: line,
 				});
 			}
@@ -268,21 +305,17 @@ image:
 ---
 # 🚦Tracking
 
-
-# 📒Dairy
-
+# 📒Diary
 
 # 📖Tasks
 
 # 🎖️Done 完成的事！
 
 
-
 \`\`\`ad-col4
 title: 🖼️ 照片瀑布流
 color: 215,155,255
 collapse: close
-
 
 \`\`\`
 
@@ -455,6 +488,108 @@ function showCalendarPopup(
 // 需要在模块外部访问 getModuleById
 import { getModuleById } from './index';
 
+// ==================== 富文本编辑 Markdown ↔ HTML 转换 ====================
+
+/** 将 Markdown 内联语法转换为 HTML（用于 contenteditable 显示） */
+function markdownToHtml(md: string): string {
+	const lines = md.split('\n');
+	return lines.map(line => {
+		// 分割线
+		if (/^---+$/.test(line.trim())) return '<hr class="jhua-dn-hr">';
+		if (/^\*\*\*+$/.test(line.trim())) return '<hr class="jhua-dn-hr">';
+		// 标题（## ~ ####）
+		const headingMatch = line.match(/^(#{2,4})\s+(.+)$/);
+		if (headingMatch) {
+			const level = headingMatch[1].length;
+			return `<h${level} class="jhua-dn-heading">${processInlineMarkdown(headingMatch[2])}</h${level}>`;
+		}
+		// 引用块
+		const quoteMatch = line.match(/^>\s?(.*)$/);
+		if (quoteMatch) return `<blockquote class="jhua-dn-blockquote">${processInlineMarkdown(quoteMatch[1])}</blockquote>`;
+		// 空行
+		if (line.trim() === '') return '<br>';
+		// 普通段落
+		return `<p>${processInlineMarkdown(line)}</p>`;
+	}).join('');
+}
+
+/** 处理内联 Markdown 语法（加粗、斜体、高亮、行内代码、字体颜色） */
+function processInlineMarkdown(text: string): string {
+	// 高亮 ==text== （默认黄色）
+	text = text.replace(/==([^=]+)==/g, '<mark class="jhua-dn-highlight" style="background:rgba(250, 204, 21, 0.35)" data-hl-color="default">$1</mark>');
+	// 带颜色高亮 <mark style="background:...">
+	// （从 .md 中读取的带 style 的 mark 会被 DOMParser 保留，这里只处理 ==text== 简写）
+	// 字体颜色 <span style="color:..."> （从 .md 中读取时保留）
+	// 加粗 **text** 或 __text__
+	text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+	text = text.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+	// 斜体 *text* 或 _text_（排除已匹配的加粗）
+	text = text.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+	text = text.replace(/(?<!_)_([^_]+)_(?!_)/g, '<em>$1</em>');
+	// 删除线 ~~text~~
+	text = text.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+	// 行内代码 `code`
+	text = text.replace(/`([^`]+)`/g, '<code class="jhua-dn-inline-code">$1</code>');
+	return text;
+}
+
+/** 将 contenteditable 的 HTML 内容转换回 Markdown（用于保存到 .md 文件） */
+function htmlToMarkdown(html: string): string {
+	// 创建临时 DOM 解析
+	const doc = new DOMParser().parseFromString(html, 'text/html');
+	const body = doc.body;
+
+	function convertNode(node: Node): string {
+		if (node.nodeType === Node.TEXT_NODE) {
+			return node.textContent || '';
+		}
+		if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+		const el = node as HTMLElement;
+		const tag = el.tagName.toLowerCase();
+		const inner = Array.from(el.childNodes).map(convertNode).join('');
+
+		switch (tag) {
+			case 'strong': case 'b': return `**${inner}**`;
+			case 'em': case 'i': return `*${inner}*`;
+			case 'del': case 's': return `~~${inner}~~`;
+			case 'mark': {
+				// 带自定义颜色的高亮：保留为 HTML 标签
+				const hlColor = el.getAttribute('data-hl-color');
+				const bgStyle = el.getAttribute('style');
+				if (hlColor && hlColor !== 'default') {
+					return `<mark class="jhua-dn-highlight" style="background:${bgStyle?.match(/background:\s*([^;]+)/)?.[1] || hlColor}" data-hl-color="${hlColor}">${inner}</mark>`;
+				}
+				// 默认黄色高亮→==语法==
+				return `==${inner}==`;
+			}
+			case 'span': {
+				// 带字体颜色的 span：保留为 HTML 标签
+				if (el.classList.contains('jhua-dn-forecolor')) {
+					const fc = el.getAttribute('data-color') || el.style.color;
+					return `<span style="color:${fc}">${inner}</span>`;
+				}
+				return inner;
+			}
+			case 'code': return `\`${inner}\``;
+			case 'h2': return `## ${inner.trim()}`;
+			case 'h3': return `### ${inner.trim()}`;
+			case 'h4': return `#### ${inner.trim()}`;
+			case 'blockquote': return `> ${inner.trim()}`;
+			case 'hr': return '---';
+			case 'p': return inner;
+			case 'br': return '\n';
+			case 'div': return inner + '\n';
+			default: return inner;
+		}
+	}
+
+	let result = Array.from(body.childNodes).map(convertNode).join('');
+	// 清理多余空行：连续3个以上换行压缩为2个
+	result = result.replace(/\n{3,}/g, '\n\n');
+	return result.trim();
+}
+
 // ==================== DailyNote 模块 ====================
 
 export class DailyNoteModule implements HPageModule {
@@ -463,7 +598,7 @@ export class DailyNoteModule implements HPageModule {
 	defaultConfig = {
 		date: '',
 		showTracking: true,
-		showDairy: true,
+		showDiary: true,
 		showTasks: true,
 		showDone: true,
 		showPhotos: false,
@@ -479,6 +614,7 @@ export class DailyNoteModule implements HPageModule {
 	private currentDate: string = '';
 	private basePath: string = '';
 	private saveTimer: ReturnType<typeof setTimeout> | null = null;
+	private selectionChangeHandler: ((e: Event) => void) | null = null;
 
 	async render(app: App, config: Record<string, any>, container?: HTMLElement): Promise<HTMLElement> {
 		this.app = app;
@@ -632,31 +768,42 @@ export class DailyNoteModule implements HPageModule {
 
 			const trackingBody = trackingSection.createDiv({ cls: 'jhua-dn-section-body jhua-dn-tracking-body' });
 
-			// 常用标签浮窗（点击 + 切换）
+			// 标签管理浮层（absolute 定位，挂在 trackingSection 上避免被 code block 拦截事件）
 			let tagMgrOpen = false;
-			const tagMgrPanel = trackingBody.createDiv({ cls: 'jhua-dn-tag-mgr', attr: { style: 'display: none;' } });
+			const tagMgrPanel = trackingSection.createDiv({ cls: 'jhua-dn-tag-mgr-popup', attr: { style: 'display: none;' } });
+			// 关键：阻止浮层内所有事件冒泡，避免 Obsidian code block 处理器拦截
+			tagMgrPanel.addEventListener('click', (e) => e.stopPropagation());
+			tagMgrPanel.addEventListener('mousedown', (e) => e.stopPropagation());
+			tagMgrPanel.addEventListener('mouseup', (e) => e.stopPropagation());
+			tagMgrPanel.addEventListener('keydown', (e) => e.stopPropagation());
+			tagMgrPanel.addEventListener('keypress', (e) => e.stopPropagation());
+			tagMgrPanel.addEventListener('input', (e) => e.stopPropagation());
 
 			tagMgrBtn.addEventListener('click', (e) => {
 				e.stopPropagation();
+				e.preventDefault();
 				tagMgrOpen = !tagMgrOpen;
 				tagMgrPanel.style.display = tagMgrOpen ? 'block' : 'none';
 				if (tagMgrOpen) {
-					renderTagManager(tagMgrPanel, trackingBody);
+					this.renderTagManager(tagMgrPanel, trackingBody);
 				}
 			});
 
-			// 常用标签快捷区域
+			// 常用标签快捷区域（带颜色）
 			const tags = loadTrackingTags();
 			const tagBar = trackingBody.createDiv({ cls: 'jhua-dn-tracking-tags' });
 			if (tags.length > 0) {
 				for (const tag of tags) {
 					const tagEl = tagBar.createEl('span', {
-						text: tag,
+						text: tag.name,
 						cls: 'jhua-dn-tracking-tag'
 					});
+					tagEl.style.setProperty('--tag-color', tag.color);
+					tagEl.style.borderColor = tag.color;
+					tagEl.style.color = tag.color;
 					// 点击标签直接添加到今日 Tracking
 					tagEl.addEventListener('click', async () => {
-						await this.addTrackingItem(tag);
+						await this.addTrackingItem(tag.name);
 						// 刷新列表
 						const newList = trackingBody.querySelector('.jhua-dn-tracking-list') as HTMLElement;
 						if (newList) {
@@ -690,35 +837,143 @@ export class DailyNoteModule implements HPageModule {
 			});
 		}
 
-		// ===== 📒 Dairy 板块 =====
-		if (config.showDairy) {
-			const dairySection = content.createDiv({ cls: 'jhua-dn-section' });
-			const dairyHeader = dairySection.createDiv({ cls: 'jhua-dn-section-header' });
-			dairyHeader.createEl('span', { text: '📒 Dairy', cls: 'jhua-dn-section-title' });
-			dairyHeader.createEl('span', { text: '直接编辑，自动保存', cls: 'jhua-dn-section-hint' });
+		// ===== 📒 Diary 板块 =====
+		if (config.showDiary) {
+			const diarySection = content.createDiv({ cls: 'jhua-dn-section' });
+			diarySection.style.position = 'relative'; // 工具栏定位需要
+			const diaryHeader = diarySection.createDiv({ cls: 'jhua-dn-section-header' });
+			diaryHeader.createEl('span', { text: '📒 Diary', cls: 'jhua-dn-section-title' });
+			diaryHeader.createEl('span', { text: '直接编辑，自动保存', cls: 'jhua-dn-section-hint' });
 
-			const dairyBody = dairySection.createDiv({ cls: 'jhua-dn-section-body jhua-dn-dairy-body' });
+			const diaryBody = diarySection.createDiv({ cls: 'jhua-dn-section-body jhua-dn-diary-body' });
 
-			const dairyText = dairyBody.createEl('textarea', {
-				cls: 'jhua-dn-dairy-editor',
-				attr: { placeholder: '今天发生了什么？记录下来吧...' }
+			// 富文本编辑器工具栏
+			const toolbar = diaryBody.createDiv({ cls: 'jhua-dn-toolbar' });
+			const toolbarActions: { icon: string; title: string; action: string }[] = [
+				{ icon: 'B', title: '加粗 (Ctrl+B)', action: 'bold' },
+				{ icon: 'I', title: '斜体 (Ctrl+I)', action: 'italic' },
+				{ icon: 'S', title: '删除线', action: 'strikethrough' },
+				{ icon: '🖍', title: '高亮（点击选色）', action: 'highlight' },
+				{ icon: 'A', title: '字体颜色（点击选色）', action: 'forecolor' },
+				{ icon: '—', title: '分割线', action: 'hr' },
+				{ icon: 'H2', title: '二级标题', action: 'h2' },
+				{ icon: 'H3', title: '三级标题', action: 'h3' },
+				{ icon: '❝', title: '引用块', action: 'blockquote' },
+				{ icon: '</>', title: '行内代码', action: 'code' },
+			];
+			for (const item of toolbarActions) {
+				const btn = toolbar.createEl('button', {
+					cls: 'jhua-dn-toolbar-btn',
+					attr: { title: item.title, 'data-action': item.action }
+				});
+				btn.createEl('span', { text: item.icon, cls: 'jhua-dn-toolbar-btn-icon' });
+				// 字体颜色和高亮按钮下方加色条指示
+				if (item.action === 'forecolor') {
+					btn.classList.add('jhua-dn-toolbar-btn-color');
+					const bar = btn.createEl('span', { cls: 'jhua-dn-toolbar-color-bar' });
+					bar.style.backgroundColor = '#ef4444';
+				}
+				if (item.action === 'highlight') {
+					btn.classList.add('jhua-dn-toolbar-btn-color');
+					const bar = btn.createEl('span', { cls: 'jhua-dn-toolbar-color-bar' });
+					bar.style.backgroundColor = 'rgba(250, 204, 21, 0.5)';
+				}
+				btn.addEventListener('mousedown', (e) => {
+					e.preventDefault(); // 阻止失焦
+					e.stopPropagation();
+				});
+				btn.addEventListener('click', (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					// 高亮和字体颜色：弹出颜色面板
+					if (item.action === 'highlight' || item.action === 'forecolor') {
+						this.showToolbarColorPicker(btn, item.action, editorEl);
+					} else {
+						this.executeToolbarAction(item.action, editorEl);
+					}
+				});
+			}
+
+			// contenteditable 富文本编辑区
+			const editorEl = diaryBody.createDiv({
+				cls: 'jhua-dn-diary-editor',
+				attr: {
+					contenteditable: 'true',
+					'data-placeholder': '今天发生了什么？记录下来吧...',
+				}
 			});
-			dairyText.value = this.currentData.dairy;
-			this.autoResizeTextarea(dairyText);
-			dairyText.addEventListener('input', () => {
-				this.autoResizeTextarea(dairyText);
-				this.scheduleSave('Dairy', dairyText.value);
+			editorEl.innerHTML = this.currentData.diary.trim()
+				? markdownToHtml(this.currentData.diary)
+				: '<p><br></p>';
+
+			// 编辑时自动显示工具栏，失焦时隐藏
+			toolbar.style.display = 'none';
+
+			editorEl.addEventListener('focus', () => {
+				toolbar.style.display = 'flex';
+				// 移除占位提示
+				const placeholder = diaryBody.querySelector('.jhua-dn-placeholder');
+				if (placeholder) placeholder.remove();
 			});
 
-			if (!this.currentData.dairy.trim()) {
-				dairyBody.createEl('div', {
+			editorEl.addEventListener('blur', () => {
+				// 延迟隐藏，避免点击工具栏时闪烁
+				setTimeout(() => {
+					if (!toolbar.matches(':hover') && !toolbar.querySelector('.jhua-dn-toolbar-btn:active')) {
+						toolbar.style.display = 'none';
+					}
+				}, 200);
+			});
+
+			// 跟踪选区变化，更新工具栏按钮激活状态
+			if (this.selectionChangeHandler) {
+				document.removeEventListener('selectionchange', this.selectionChangeHandler);
+			}
+			this.selectionChangeHandler = () => {
+				const sel = window.getSelection();
+				if (!sel || sel.rangeCount === 0) return;
+				// 检查选区是否在编辑器内
+				const range = sel.getRangeAt(0);
+				if (!editorEl.contains(range.commonAncestorContainer)) return;
+				// 更新按钮激活状态
+				toolbar.querySelectorAll('.jhua-dn-toolbar-btn').forEach(btn => {
+					const action = (btn as HTMLElement).dataset.action || '';
+					let active = false;
+					switch (action) {
+						case 'bold': active = document.queryCommandState('bold'); break;
+						case 'italic': active = document.queryCommandState('italic'); break;
+						case 'strikethrough': active = document.queryCommandState('strikeThrough'); break;
+					case 'highlight': active = !!this.getClosestTag(range.commonAncestorContainer, 'MARK'); break;
+					case 'forecolor': active = !!(this.getClosestTag(range.commonAncestorContainer, 'SPAN')?.classList.contains('jhua-dn-forecolor')); break;
+					case 'code': active = !!this.getClosestTag(range.commonAncestorContainer, 'CODE'); break;
+					case 'h2': active = !!this.getClosestTag(range.commonAncestorContainer, 'H2'); break;
+					case 'h3': active = !!this.getClosestTag(range.commonAncestorContainer, 'H3'); break;
+					case 'blockquote': active = !!this.getClosestTag(range.commonAncestorContainer, 'BLOCKQUOTE'); break;
+					}
+					btn.classList.toggle('jhua-dn-toolbar-btn-active', active);
+				});
+			};
+			document.addEventListener('selectionchange', this.selectionChangeHandler);
+
+			// 输入事件：防抖保存
+			editorEl.addEventListener('input', () => {
+				const md = htmlToMarkdown(editorEl.innerHTML);
+				this.scheduleSave('Diary', md);
+			});
+
+			// 快捷键支持
+			editorEl.addEventListener('keydown', (e) => {
+				if (e.ctrlKey || e.metaKey) {
+					if (e.key === 'b') { e.preventDefault(); this.executeToolbarAction('bold', editorEl); }
+					if (e.key === 'i') { e.preventDefault(); this.executeToolbarAction('italic', editorEl); }
+				}
+			});
+
+			if (!this.currentData.diary.trim()) {
+				diaryBody.createEl('div', {
 					text: '✍️ 点击上方区域开始写日记...',
 					cls: 'jhua-dn-placeholder'
 				});
-				dairyText.addEventListener('focus', () => {
-					const placeholder = dairyBody.querySelector('.jhua-dn-placeholder');
-					if (placeholder) placeholder.remove();
-				}, { once: true });
 			}
 		}
 
@@ -734,14 +989,14 @@ export class DailyNoteModule implements HPageModule {
 			this.renderTaskList(taskList);
 
 			const addTaskRow = tasksBody.createDiv({ cls: 'jhua-dn-add-task' });
-			const addInput = addTaskRow.createEl('input', {
+			const addTaskInput = addTaskRow.createEl('input', {
 				cls: 'jhua-dn-add-task-input',
 				attr: { placeholder: '添加待办，回车确认...', type: 'text' }
 			});
-			addInput.addEventListener('keydown', async (e) => {
-				if (e.key === 'Enter' && addInput.value.trim()) {
-					await this.addTask(addInput.value.trim());
-					addInput.value = '';
+			addTaskInput.addEventListener('keydown', async (e) => {
+				if (e.key === 'Enter' && addTaskInput.value.trim()) {
+					await this.addTask(addTaskInput.value.trim());
+					addTaskInput.value = '';
 					taskList.empty();
 					await this.reloadAndRenderTasks(taskList);
 					await refreshModules(this.app, ['daily-tasks', 'todo-list'], this.config);
@@ -771,7 +1026,7 @@ export class DailyNoteModule implements HPageModule {
 				if (e.key === 'Enter' && addDoneInput.value.trim()) {
 					await this.addDoneItem(addDoneInput.value.trim());
 					addDoneInput.value = '';
-					doneList.empty();
+					// 修复：使用 vault.read 而非 cachedRead 确保读到最新内容
 					await this.reloadAndRenderDone(doneList);
 				}
 			});
@@ -780,30 +1035,61 @@ export class DailyNoteModule implements HPageModule {
 		return this.container;
 	}
 
-	// ==================== 标签管理器 ====================
+	// ==================== 标签管理器（含颜色配置） ====================
 
 	private renderTagManager(panel: HTMLElement, trackingBody: HTMLElement): void {
 		panel.empty();
 		const tags = loadTrackingTags();
 
 		const title = panel.createDiv({ cls: 'jhua-dn-tag-mgr-title' });
-		title.textContent = '常用标签管理';
+		title.createEl('span', { text: '常用标签管理' });
+
+		// 关闭按钮
+		const closeBtn = title.createEl('button', {
+			text: '✕',
+			cls: 'jhua-dn-tag-mgr-close',
+			attr: { title: '关闭' }
+		});
+		closeBtn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			e.preventDefault();
+			panel.style.display = 'none';
+		});
 
 		const list = panel.createDiv({ cls: 'jhua-dn-tag-mgr-list' });
 		for (let i = 0; i < tags.length; i++) {
 			const row = list.createDiv({ cls: 'jhua-dn-tag-mgr-row' });
-			row.createEl('span', { text: tags[i], cls: 'jhua-dn-tag-mgr-label' });
+
+			// 颜色指示点
+			const colorDot = row.createEl('span', { cls: 'jhua-dn-tag-mgr-color-dot' });
+			colorDot.style.backgroundColor = tags[i].color;
+			// 点击颜色点弹出颜色选择
+			colorDot.addEventListener('mousedown', (e) => e.stopPropagation());
+			colorDot.addEventListener('click', (e) => {
+				e.stopPropagation();
+				e.preventDefault();
+				this.showColorPicker(row, tags[i].color, (newColor) => {
+					tags[i].color = newColor;
+					saveTrackingTags(tags);
+					colorDot.style.backgroundColor = newColor;
+					this.refreshTagBar(trackingBody);
+				});
+			});
+
+			row.createEl('span', { text: tags[i].name, cls: 'jhua-dn-tag-mgr-label' });
 			const delBtn = row.createEl('button', {
 				text: '✕',
 				cls: 'jhua-dn-tag-mgr-del',
 				attr: { title: '删除此标签' }
 			});
+			const idx = i;
+			delBtn.addEventListener('mousedown', (e) => e.stopPropagation());
 			delBtn.addEventListener('click', (e) => {
 				e.stopPropagation();
-				tags.splice(i, 1);
+				e.preventDefault();
+				tags.splice(idx, 1);
 				saveTrackingTags(tags);
 				this.renderTagManager(panel, trackingBody);
-				// 同步刷新标签栏
 				this.refreshTagBar(trackingBody);
 			});
 		}
@@ -814,12 +1100,17 @@ export class DailyNoteModule implements HPageModule {
 			cls: 'jhua-dn-tag-mgr-add-input',
 			attr: { placeholder: '新标签名，回车添加...', type: 'text' }
 		});
+		// 必须阻止 mousedown 冒泡，否则 input 无法获得焦点
+		addInput.addEventListener('mousedown', (e) => e.stopPropagation());
 		addInput.addEventListener('keydown', (e) => {
 			e.stopPropagation();
 			if (e.key === 'Enter' && addInput.value.trim()) {
+				e.preventDefault();
 				const newTag = addInput.value.trim();
-				if (!tags.includes(newTag)) {
-					tags.push(newTag);
+				if (!tags.some(t => t.name === newTag)) {
+					// 自动分配颜色（轮盘取色）
+					const colorIdx = tags.length % TAG_COLOR_PALETTE.length;
+					tags.push({ name: newTag, color: TAG_COLOR_PALETTE[colorIdx].value });
 					saveTrackingTags(tags);
 					this.renderTagManager(panel, trackingBody);
 					this.refreshTagBar(trackingBody);
@@ -830,6 +1121,40 @@ export class DailyNoteModule implements HPageModule {
 		});
 	}
 
+	/** 颜色选择器（内联色盘） */
+	private showColorPicker(parentRow: HTMLElement, currentColor: string, onPick: (color: string) => void): void {
+		// 移除已存在的色盘
+		const existing = parentRow.querySelector('.jhua-dn-color-picker');
+		if (existing) { existing.remove(); return; }
+
+		const picker = parentRow.createDiv({ cls: 'jhua-dn-color-picker' });
+		picker.addEventListener('mousedown', (e) => e.stopPropagation());
+		picker.addEventListener('click', (e) => e.stopPropagation());
+
+		for (const c of TAG_COLOR_PALETTE) {
+			const swatch = picker.createEl('span', {
+				cls: 'jhua-dn-color-swatch' + (c.value === currentColor ? ' jhua-dn-color-swatch-active' : ''),
+			});
+			swatch.style.backgroundColor = c.value;
+			swatch.title = c.name;
+			swatch.addEventListener('click', (e) => {
+				e.stopPropagation();
+				e.preventDefault();
+				onPick(c.value);
+				picker.remove();
+			});
+		}
+
+		// 点击其他地方关闭
+		const closePicker = (e: MouseEvent) => {
+			if (!picker.contains(e.target as Node)) {
+				picker.remove();
+				document.removeEventListener('mousedown', closePicker);
+			}
+		};
+		setTimeout(() => document.addEventListener('mousedown', closePicker), 50);
+	}
+
 	/** 刷新标签栏 */
 	private refreshTagBar(trackingBody: HTMLElement): void {
 		const tagBar = trackingBody.querySelector('.jhua-dn-tracking-tags') as HTMLElement;
@@ -838,11 +1163,14 @@ export class DailyNoteModule implements HPageModule {
 		const tags = loadTrackingTags();
 		for (const tag of tags) {
 			const tagEl = tagBar.createEl('span', {
-				text: tag,
+				text: tag.name,
 				cls: 'jhua-dn-tracking-tag'
 			});
+			tagEl.style.setProperty('--tag-color', tag.color);
+			tagEl.style.borderColor = tag.color;
+			tagEl.style.color = tag.color;
 			tagEl.addEventListener('click', async () => {
-				await this.addTrackingItem(tag);
+				await this.addTrackingItem(tag.name);
 				const newList = trackingBody.querySelector('.jhua-dn-tracking-list') as HTMLElement;
 				if (newList) {
 					newList.empty();
@@ -942,13 +1270,26 @@ export class DailyNoteModule implements HPageModule {
 			return;
 		}
 
+		const tags = loadTrackingTags();
 		for (const item of this.currentData.tracking) {
-			const row = container.createDiv({ cls: 'jhua-dn-tracking-item' });
-			// 圆点标记而非 checkbox
-			row.createEl('span', { cls: 'jhua-dn-tracking-dot' });
+			const row = container.createDiv({ cls: 'jhua-dn-tracking-item jhua-dn-item-row' });
+			// 查找匹配的标签颜色
+			const matchedTag = tags.find(t => t.name === item.text);
+			const dot = row.createEl('span', { cls: 'jhua-dn-tracking-dot' });
+			if (matchedTag) {
+				dot.style.backgroundColor = matchedTag.color;
+			}
 			row.createEl('span', {
 				text: item.text,
 				cls: 'jhua-dn-tracking-text'
+			});
+			// 悬浮删除按钮
+			const delBtn = row.createEl('span', { text: '✕', cls: 'jhua-dn-item-del', attr: { title: '删除' } });
+			delBtn.addEventListener('click', async (e) => {
+				e.stopPropagation();
+				await this.removeLineFromSection('Tracking', item.raw);
+				container.empty();
+				this.renderTrackingList(container);
 			});
 		}
 	}
@@ -1012,7 +1353,7 @@ export class DailyNoteModule implements HPageModule {
 
 		if (pending.length > 0) {
 			for (const task of pending) {
-				const item = container.createDiv({ cls: 'jhua-dn-task-item' });
+				const item = container.createDiv({ cls: 'jhua-dn-task-item jhua-dn-item-row' });
 				const checkbox = item.createEl('input', {
 					type: 'checkbox',
 					cls: 'jhua-dn-task-checkbox'
@@ -1026,6 +1367,15 @@ export class DailyNoteModule implements HPageModule {
 					await refreshModules(this.app, ['daily-tasks', 'todo-list'], this.config);
 				});
 				item.createEl('span', { text: task.text, cls: 'jhua-dn-task-text' });
+				// 悬浮删除按钮
+				const delBtn = item.createEl('span', { text: '✕', cls: 'jhua-dn-item-del', attr: { title: '删除' } });
+				delBtn.addEventListener('click', async (e) => {
+					e.stopPropagation();
+					await this.removeLineFromSection('Tasks', task.raw);
+					container.empty();
+					this.renderTaskList(container);
+					await refreshModules(this.app, ['daily-tasks', 'todo-list'], this.config);
+				});
 			}
 		}
 
@@ -1043,7 +1393,7 @@ export class DailyNoteModule implements HPageModule {
 			});
 
 			for (const task of completed) {
-				const item = completedList.createDiv({ cls: 'jhua-dn-task-item jhua-dn-task-completed' });
+				const item = completedList.createDiv({ cls: 'jhua-dn-task-item jhua-dn-task-completed jhua-dn-item-row' });
 				const checkbox = item.createEl('input', {
 					type: 'checkbox',
 					cls: 'jhua-dn-task-checkbox'
@@ -1057,6 +1407,15 @@ export class DailyNoteModule implements HPageModule {
 					await refreshModules(this.app, ['daily-tasks', 'todo-list'], this.config);
 				});
 				item.createEl('span', { text: task.text, cls: 'jhua-dn-task-text' });
+				// 悬浮删除按钮
+				const delBtn = item.createEl('span', { text: '✕', cls: 'jhua-dn-item-del', attr: { title: '删除' } });
+				delBtn.addEventListener('click', async (e) => {
+					e.stopPropagation();
+					await this.removeLineFromSection('Tasks', task.raw);
+					container.empty();
+					this.renderTaskList(container);
+					await refreshModules(this.app, ['daily-tasks', 'todo-list'], this.config);
+				});
 			}
 		}
 	}
@@ -1127,7 +1486,7 @@ export class DailyNoteModule implements HPageModule {
 
 	private async reloadAndRenderTasks(container: HTMLElement): Promise<void> {
 		if (!this.currentFile) return;
-		const content = await this.app.vault.cachedRead(this.currentFile);
+		const content = await this.app.vault.read(this.currentFile);
 		this.currentData = parseDailyNote(content);
 		container.empty();
 		this.renderTaskList(container);
@@ -1145,11 +1504,19 @@ export class DailyNoteModule implements HPageModule {
 		}
 
 		for (const item of this.currentData.doneItems) {
-			const row = container.createDiv({ cls: 'jhua-dn-done-item' });
+			const row = container.createDiv({ cls: 'jhua-dn-done-item jhua-dn-item-row' });
 			row.createEl('span', { cls: 'jhua-dn-done-dot' });
 			row.createEl('span', {
 				text: item.text,
 				cls: 'jhua-dn-done-text'
+			});
+			// 悬浮删除按钮
+			const delBtn = row.createEl('span', { text: '✕', cls: 'jhua-dn-item-del', attr: { title: '删除' } });
+			delBtn.addEventListener('click', async (e) => {
+				e.stopPropagation();
+				await this.removeLineFromSection('Done', item.raw);
+				container.empty();
+				this.renderDoneList(container);
 			});
 		}
 	}
@@ -1199,13 +1566,264 @@ export class DailyNoteModule implements HPageModule {
 
 	private async reloadAndRenderDone(container: HTMLElement): Promise<void> {
 		if (!this.currentFile) return;
-		const content = await this.app.vault.cachedRead(this.currentFile);
+		// 修复：使用 vault.read 而非 cachedRead，确保读到最新写入的内容
+		const content = await this.app.vault.read(this.currentFile);
 		this.currentData = parseDailyNote(content);
 		container.empty();
 		this.renderDoneList(container);
 	}
 
 	// ==================== 通用工具 ====================
+
+	/** 从指定板块删除一行（按 raw 原文精确匹配） */
+	private async removeLineFromSection(section: string, rawLine: string): Promise<void> {
+		if (!this.currentFile) return;
+		try {
+			let content = await this.app.vault.read(this.currentFile);
+			const lines = content.split('\n');
+
+			// 找到板块起始
+			let sectionIdx = -1;
+			for (let i = 0; i < lines.length; i++) {
+				if (section === 'Tracking' && /^#\s*🚦\s*Tracking/i.test(lines[i])) { sectionIdx = i; break; }
+				if (section === 'Tasks' && /^#\s*📖\s*Tasks/i.test(lines[i])) { sectionIdx = i; break; }
+				if (section === 'Done' && /^#\s*🎖️\s*Done/i.test(lines[i])) { sectionIdx = i; break; }
+			}
+			if (sectionIdx === -1) return;
+
+			// 找到下一板块起始
+			let nextSectionIdx = lines.length;
+			for (let i = sectionIdx + 1; i < lines.length; i++) {
+				if (/^#\s*[🚦📒📖🎖️🖼️]/.test(lines[i]) || lines[i].trim().startsWith('```ad-col4')) {
+					nextSectionIdx = i;
+					break;
+				}
+			}
+
+			// 在板块内查找匹配行并删除
+			for (let i = sectionIdx + 1; i < nextSectionIdx; i++) {
+				if (lines[i] === rawLine) {
+					lines.splice(i, 1);
+					await this.app.vault.modify(this.currentFile, lines.join('\n'));
+					// 同步更新内存数据
+					const freshContent = await this.app.vault.read(this.currentFile);
+					this.currentData = parseDailyNote(freshContent);
+					return;
+				}
+			}
+		} catch (e) {
+			console.error('删除行失败:', e);
+		}
+	}
+
+	/** 辅助：从节点向上查找最近的指定标签 */
+	private getClosestTag(node: Node, tagName: string): HTMLElement | null {
+		let current = node instanceof HTMLElement ? node : node.parentElement;
+		while (current) {
+			if (current.tagName === tagName) return current;
+			if (current === this.container) return null;
+			current = current.parentElement;
+		}
+		return null;
+	}
+
+	/** 工具栏颜色选择面板（高亮/字体颜色） */
+	private showToolbarColorPicker(btn: HTMLElement, action: string, editor: HTMLElement): void {
+		// 移除已存在的面板
+		const existing = btn.parentElement?.querySelector('.jhua-dn-toolbar-color-panel');
+		if (existing) { existing.remove(); return; }
+
+		const panel = btn.parentElement!.createDiv({ cls: 'jhua-dn-toolbar-color-panel' });
+		panel.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); });
+		panel.addEventListener('click', (e) => e.stopPropagation());
+
+		// 高亮颜色预设（含透明度，适合做背景）
+		const highlightColors = [
+			{ name: '默认黄', value: 'rgba(250, 204, 21, 0.35)' },
+			{ name: '珊瑚红', value: 'rgba(239, 68, 68, 0.25)' },
+			{ name: '橙色', value: 'rgba(249, 115, 22, 0.25)' },
+			{ name: '翠绿', value: 'rgba(34, 197, 94, 0.25)' },
+			{ name: '天蓝', value: 'rgba(59, 130, 246, 0.25)' },
+			{ name: '紫罗兰', value: 'rgba(139, 92, 246, 0.25)' },
+			{ name: '粉色', value: 'rgba(236, 72, 153, 0.25)' },
+			{ name: '青色', value: 'rgba(6, 182, 212, 0.25)' },
+		];
+
+		// 字体颜色预设
+		const foreColors = [
+			{ name: '珊瑚红', value: '#ef4444' },
+			{ name: '橙色', value: '#f97316' },
+			{ name: '琥珀', value: '#f59e0b' },
+			{ name: '翠绿', value: '#22c55e' },
+			{ name: '天蓝', value: '#3b82f6' },
+			{ name: '紫罗兰', value: '#8b5cf6' },
+			{ name: '粉色', value: '#ec4899' },
+			{ name: '青色', value: '#06b6d4' },
+		];
+
+		const colors = action === 'highlight' ? highlightColors : foreColors;
+
+		for (const c of colors) {
+			const swatch = panel.createEl('span', {
+				cls: 'jhua-dn-toolbar-color-swatch',
+				attr: { title: c.name },
+			});
+			swatch.style.backgroundColor = c.value;
+			// 字体颜色色块内加 A 字辅助辨识
+			if (action === 'forecolor') {
+				swatch.createEl('span', { text: 'A', cls: 'jhua-dn-toolbar-color-swatch-label' });
+			}
+			swatch.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); });
+			swatch.addEventListener('click', (e) => {
+				e.stopPropagation();
+				e.preventDefault();
+				this.executeToolbarAction(action, editor, c.value);
+				// 更新按钮色条
+				const bar = btn.querySelector('.jhua-dn-toolbar-color-bar') as HTMLElement;
+				if (bar) bar.style.backgroundColor = c.value;
+				panel.remove();
+			});
+		}
+
+		// 清除颜色按钮
+		const clearBtn = panel.createEl('button', {
+			cls: 'jhua-dn-toolbar-color-clear',
+			text: '✕ 清除',
+			attr: { title: '清除颜色' },
+		});
+		clearBtn.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); });
+		clearBtn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			e.preventDefault();
+			this.executeToolbarAction(action === 'highlight' ? 'highlight-clear' : 'forecolor-clear', editor);
+			panel.remove();
+		});
+
+		// 点击外部关闭
+		const closePanel = (e: MouseEvent) => {
+			if (!panel.contains(e.target as Node) && e.target !== btn) {
+				panel.remove();
+				document.removeEventListener('mousedown', closePanel);
+			}
+		};
+		setTimeout(() => document.addEventListener('mousedown', closePanel), 50);
+	}
+
+	/** 执行工具栏格式化操作（即时生效） */
+	private executeToolbarAction(action: string, editor: HTMLElement, color?: string): void {
+		editor.focus(); // 确保编辑器有焦点
+
+		switch (action) {
+			case 'bold':
+				document.execCommand('bold');
+				break;
+			case 'italic':
+				document.execCommand('italic');
+				break;
+			case 'strikethrough':
+				document.execCommand('strikeThrough');
+				break;
+			case 'forecolor': {
+				const sel = window.getSelection();
+				if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+					const range = sel.getRangeAt(0);
+					const span = document.createElement('span');
+					span.style.color = color || '#ef4444';
+					span.className = 'jhua-dn-forecolor';
+					span.setAttribute('data-color', color || '#ef4444');
+					range.surroundContents(span);
+				}
+				break;
+			}
+			case 'forecolor-clear': {
+				const sel2 = window.getSelection();
+				if (sel2 && sel2.rangeCount > 0) {
+					const range2 = sel2.getRangeAt(0);
+					const span2 = this.getClosestTag(range2.commonAncestorContainer, 'SPAN');
+					if (span2 && span2.classList.contains('jhua-dn-forecolor')) {
+						const parent = span2.parentNode;
+						while (span2.firstChild) parent?.insertBefore(span2.firstChild, span2);
+						parent?.removeChild(span2);
+					}
+				}
+				break;
+			}
+			case 'highlight': {
+				const sel3 = window.getSelection();
+				if (sel3 && sel3.rangeCount > 0 && !sel3.isCollapsed) {
+					const range3 = sel3.getRangeAt(0);
+					const existingMark = this.getClosestTag(range3.commonAncestorContainer, 'MARK');
+					if (existingMark) {
+						// 已高亮→更新颜色
+						existingMark.style.background = color || 'rgba(250, 204, 21, 0.35)';
+						existingMark.setAttribute('data-hl-color', color || 'default');
+					} else {
+						const mark = document.createElement('mark');
+						mark.className = 'jhua-dn-highlight';
+						mark.style.background = color || 'rgba(250, 204, 21, 0.35)';
+						mark.setAttribute('data-hl-color', color || 'default');
+						range3.surroundContents(mark);
+					}
+				}
+				break;
+			}
+			case 'highlight-clear': {
+				const sel4 = window.getSelection();
+				if (sel4 && sel4.rangeCount > 0) {
+					const range4 = sel4.getRangeAt(0);
+					const existingMark2 = this.getClosestTag(range4.commonAncestorContainer, 'MARK');
+					if (existingMark2) {
+						const parent2 = existingMark2.parentNode;
+						while (existingMark2.firstChild) parent2?.insertBefore(existingMark2.firstChild, existingMark2);
+						parent2?.removeChild(existingMark2);
+					}
+				}
+				break;
+			}
+			case 'hr':
+				document.execCommand('insertHTML', false, '<hr class="jhua-dn-hr"><p><br></p>');
+				break;
+			case 'h2':
+				document.execCommand('formatBlock', false, '<h2>');
+				// 添加类名
+				this.addClassToCurrentBlock(editor, 'h2', 'jhua-dn-heading');
+				break;
+			case 'h3':
+				document.execCommand('formatBlock', false, '<h3>');
+				this.addClassToCurrentBlock(editor, 'h3', 'jhua-dn-heading');
+				break;
+			case 'blockquote':
+				document.execCommand('formatBlock', false, '<blockquote>');
+				this.addClassToCurrentBlock(editor, 'blockquote', 'jhua-dn-blockquote');
+				break;
+			case 'code': {
+				const sel = window.getSelection();
+				if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+					const range = sel.getRangeAt(0);
+					const code = document.createElement('code');
+					code.className = 'jhua-dn-inline-code';
+					range.surroundContents(code);
+				}
+				break;
+			}
+		}
+
+		// 触发保存
+		const md = htmlToMarkdown(editor.innerHTML);
+		this.scheduleSave('Diary', md);
+	}
+
+	/** 为当前光标所在的块级元素添加类名 */
+	private addClassToCurrentBlock(editor: HTMLElement, tagName: string, className: string): void {
+		const sel = window.getSelection();
+		if (!sel || sel.rangeCount === 0) return;
+		const node = sel.anchorNode;
+		if (!node) return;
+		const el = node instanceof HTMLElement ? node : node.parentElement;
+		if (el && el.tagName.toLowerCase() === tagName.toLowerCase()) {
+			el.classList.add(className);
+		}
+	}
 
 	private autoResizeTextarea(el: HTMLTextAreaElement): void {
 		el.style.height = 'auto';
@@ -1228,7 +1846,7 @@ export class DailyNoteModule implements HPageModule {
 
 			let sectionIdx = -1;
 			for (let i = 0; i < lines.length; i++) {
-				if (section === 'Dairy' && /^#\s*📒\s*Dairy/i.test(lines[i])) {
+				if (section === 'Diary' && /^#\s*📒\s*Diary/i.test(lines[i])) {
 					sectionIdx = i;
 					break;
 				}
@@ -1252,8 +1870,8 @@ export class DailyNoteModule implements HPageModule {
 				}
 			}
 
+			// 修复：newLines 不包含标题行（splice 从 sectionIdx+1 开始替换）
 			const newLines = [
-				lines[sectionIdx],
 				'',
 				...value.split('\n'),
 				'',

@@ -46,9 +46,8 @@ export class QuickNavModule implements HPageModule {
     // 清空原有内容
     this.container.empty();
     
-    // 渲染标题
+    // 渲染标题（仅按钮，无文本）
     const header = this.container.createDiv({ cls: 'module-header' });
-    header.createEl('h2', { text: '快捷导航' });
     // 按钮组：刷新 + 设置紧贴在一起
     const headerBtns = header.createDiv({ cls: 'jhua-nav-header-btns' });
     // 全局刷新按钮：刷新整个页面所有组件

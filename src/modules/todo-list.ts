@@ -357,7 +357,7 @@ export class TodoListModule implements HPageModule {
               const templatePath = this.config.dailyNoteTemplate || 'templates/11-日记模板.md';
               const templateFile = this.app.vault.getAbstractFileByPath(templatePath);
               
-              let initialContent = `---\ntags:\n  - daily_note\n---\n# 🚦Tracking\n\n\n# 📒Dairy\n\n\n# 📖Tasks\n\n\n# 🎖️Done 完成的事！\n`;
+              let initialContent = `---\ntags:\n  - daily_note\n---\n# 🚦Tracking\n\n\n# 📒Diary\n\n\n# 📖Tasks\n\n\n# 🎖️Done 完成的事！\n`;
               
               if (templateFile instanceof TFile) {
                 initialContent = await this.app.vault.read(templateFile);

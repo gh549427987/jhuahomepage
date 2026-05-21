@@ -4,6 +4,7 @@ import { MODULES, getModuleById } from './src/modules';
 import { parseCuotiSource, renderCuotiCard } from './src/modules/cuoti-card';
 import { parseProgressSource, renderProgressCard } from './src/modules/progress-card';
 import { parseDailyNote } from './src/modules/daily-note';
+import { OwerView, OWER_VIEW_TYPE } from './src/modules/ower-view';
 import { CategoryItem, Category, JhuaHPageSettings } from './src/types';
 
 const DEFAULT_SETTINGS: JhuaHPageSettings = {
@@ -55,7 +56,8 @@ const DEFAULT_SETTINGS: JhuaHPageSettings = {
     'todo-list': { enabled: true, order: 2, span: 2, config: {} },
     'project-tracking': { enabled: true, order: 3, span: 2, config: {} },
     'unorganized-files': { enabled: true, order: 4, span: 2, config: {} },
-    'recent-files': { enabled: true, order: 5, span: 2, config: {} }
+    'recent-files': { enabled: true, order: 5, span: 2, config: {} },
+    'ower': { enabled: false, order: 14, span: 2, config: {} }
   }
 };
 
@@ -133,8 +135,16 @@ export class NavigationSettingsModal extends Modal {
       
       const itemsList = categorySection.createDiv({ cls: 'jhua-items-list' });
       
-      for (const item of category.items) {
+      for (let idx = 0; idx < category.items.length; idx++) {
+        const item = category.items[idx];
         const itemRow = itemsList.createDiv({ cls: 'jhua-item-row' });
+        itemRow.draggable = true;
+        itemRow.dataset.itemIndex = String(idx);
+
+        // 拖拽手柄
+        const dragHandle = itemRow.createEl('span', { cls: 'jhua-item-drag-handle', attr: { title: '拖动排序' } });
+        dragHandle.textContent = '⠿';
+
         itemRow.createEl('span', { text: `${item.icon} ${item.name}` });
         itemRow.createEl('span', { text: item.path, cls: 'jhua-item-path' });
         
@@ -155,6 +165,45 @@ export class NavigationSettingsModal extends Modal {
               this.onOpen();
             }
           });
+
+        // 拖拽排序事件
+        itemRow.addEventListener('dragstart', (e: DragEvent) => {
+          if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(idx));
+          }
+          itemRow.addClass('jhua-item-dragging');
+        });
+
+        itemRow.addEventListener('dragend', () => {
+          itemRow.removeClass('jhua-item-dragging');
+          itemsList.querySelectorAll('.jhua-item-drag-over').forEach(el => el.removeClass('jhua-item-drag-over'));
+        });
+
+        itemRow.addEventListener('dragover', (e: DragEvent) => {
+          e.preventDefault();
+          if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+          // 清除其他行的 drag-over 状态
+          itemsList.querySelectorAll('.jhua-item-drag-over').forEach(el => el.removeClass('jhua-item-drag-over'));
+          itemRow.addClass('jhua-item-drag-over');
+        });
+
+        itemRow.addEventListener('dragleave', () => {
+          itemRow.removeClass('jhua-item-drag-over');
+        });
+
+        itemRow.addEventListener('drop', async (e: DragEvent) => {
+          e.preventDefault();
+          itemRow.removeClass('jhua-item-drag-over');
+          const fromIdx = parseInt(e.dataTransfer?.getData('text/plain') || '', 10);
+          const toIdx = idx;
+          if (isNaN(fromIdx) || fromIdx === toIdx) return;
+          // 重排 items 数组
+          const movedItem = category.items.splice(fromIdx, 1)[0];
+          category.items.splice(toIdx, 0, movedItem);
+          await this.plugin.saveSettings();
+          this.onOpen(); // 重新渲染
+        });
       }
       
       const addItemBtn = categorySection.createEl('button', { 
@@ -527,9 +576,37 @@ class JhuaHPageSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl('h2', { text: 'Jhua主页插件设置' });
+    containerEl.createEl('h2', { text: 'Jhua 主页插件设置' });
 
-    new Setting(containerEl)
+    // ========== 辅助函数 ==========
+    const ensureOwerConfig = () => {
+      if (!this.plugin.settings.modules.ower) {
+        this.plugin.settings.modules.ower = { enabled: false, order: 14, span: 2, config: {} };
+      }
+      return this.plugin.settings.modules.ower.config || {};
+    };
+
+    /** 创建分组卡片容器 */
+    const createSection = (icon: string, title: string, desc?: string): HTMLElement => {
+      const section = containerEl.createDiv({ cls: 'jhua-settings-section' });
+      section.createEl('h3', { text: `${icon} ${title}`, cls: 'jhua-settings-section-title' });
+      if (desc) {
+        section.createEl('p', { text: desc, cls: 'jhua-settings-section-desc' });
+      }
+      return section;
+    };
+
+    /** 在分组内创建子分组（如雷达图颜色） */
+    const createSubGroup = (parent: HTMLElement, icon: string, title: string): HTMLElement => {
+      const sub = parent.createDiv({ cls: 'jhua-settings-subgroup' });
+      sub.createEl('div', { text: `${icon} ${title}`, cls: 'jhua-settings-subgroup-title' });
+      return sub;
+    };
+
+    // ==================== 📂 基础配置 ====================
+    const secBasic = createSection('📂', '基础配置', '待办、日记、项目跟踪等通用路径配置');
+
+    new Setting(secBasic)
       .setName('待办缓存路径')
       .setDesc('待办事项JSON缓存文件的存储路径')
       .addText(text => text
@@ -540,7 +617,7 @@ class JhuaHPageSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    new Setting(containerEl)
+    new Setting(secBasic)
       .setName('待办事项文档路径')
       .setDesc('点击创建按钮直接打开的待办文档路径')
       .addText(text => text
@@ -551,7 +628,7 @@ class JhuaHPageSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    new Setting(containerEl)
+    new Setting(secBasic)
       .setName('日记模板路径')
       .setDesc('创建日记时使用的模板文件路径')
       .addText(text => text
@@ -562,7 +639,7 @@ class JhuaHPageSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    new Setting(containerEl)
+    new Setting(secBasic)
       .setName('项目跟踪创建URI')
       .setDesc('项目跟踪区域创建按钮的AdvancedURI')
       .addText(text => text
@@ -573,7 +650,7 @@ class JhuaHPageSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    new Setting(containerEl)
+    new Setting(secBasic)
       .setName('待整理创建URI')
       .setDesc('待整理区域创建按钮的AdvancedURI')
       .addText(text => text
@@ -584,11 +661,10 @@ class JhuaHPageSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    // 待整理扫描路径设置
-    containerEl.createEl('h3', { text: '📥 待整理扫描路径' });
-    containerEl.createEl('p', { text: '配置待整理区域检索的文件夹路径。"/"表示仓库根目录（仅扫描根目录下的md文件，不含子目录）。', attr: { style: 'color: var(--text-muted); font-size: 0.9em; margin-bottom: 12px;' } });
-    
-    const pathsContainer = containerEl.createDiv({ cls: 'jhua-scan-paths-container' });
+    // ==================== 📥 待整理扫描 ====================
+    const secUnorg = createSection('📥', '待整理扫描路径', '配置待整理区域检索的文件夹路径。"/"表示仓库根目录（仅扫描根目录下的md文件，不含子目录）。');
+
+    const pathsContainer = secUnorg.createDiv({ cls: 'jhua-scan-paths-container' });
     const renderPaths = () => {
       pathsContainer.empty();
       const paths = this.plugin.settings.unorganizedScanPaths || [];
@@ -613,8 +689,8 @@ class JhuaHPageSettingTab extends PluginSettingTab {
       });
     };
     renderPaths();
-    
-    new Setting(containerEl)
+
+    new Setting(secUnorg)
       .setName('添加扫描路径')
       .addButton(button => button
         .setButtonText('+ 添加路径')
@@ -628,20 +704,210 @@ class JhuaHPageSettingTab extends PluginSettingTab {
           renderPaths();
         }));
 
-    new Setting(contentEl)
-      .setName('导航设置')
-      .setDesc('配置导航分类和项目')
+    // ==================== 🧭 导航设置 ====================
+    const secNav = createSection('🧭', '导航设置', '配置导航分类和项目');
+
+    new Setting(secNav)
+      .setName('导航管理')
+      .setDesc('管理导航分类和导航项')
       .addButton(button => button
         .setButtonText('打开导航设置')
+        .setCta()
         .onClick(() => {
           new NavigationSettingsModal(this.app, this.plugin).open();
         }));
 
-    // ==================== 天气设置 ====================
-    contentEl.createEl('h3', { text: '🌤️ 天气预报设置', cls: 'jhua-settings-subtitle' });
-    contentEl.createEl('p', { text: '使用 Open-Meteo 免费API，无需申请Key。默认定位佛山南海区里水镇。', attr: { style: 'color: var(--text-muted); font-size: 0.9em; margin-bottom: 12px;' } });
+    // ==================== 🪪 个人名片 ====================
+    const secOwer = createSection('🪪', '个人名片', '配置个人名片组件的头像、昵称、座右铭、统计语句等');
 
-    new Setting(contentEl)
+    // ---- 个人信息子分组 ----
+    const profileSub = createSubGroup(secOwer, '👤', '个人信息');
+
+    new Setting(profileSub)
+      .setName('头像')
+      .setDesc('上传头像图片（保存到 VaultSources/主页数据/ower-avatar.png）')
+      .addButton(button => button
+        .setButtonText('📷 选择图片')
+        .onClick(() => {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/png,image/jpeg,image/gif,image/webp';
+          input.onchange = async () => {
+            const file = input.files?.[0];
+            if (file) {
+              const { OwerCardModule } = require('./src/modules/ower-card');
+              await OwerCardModule.uploadAvatar(this.app, file);
+              new Notice('✅ 头像已上传');
+            }
+          };
+          input.click();
+        }));
+
+    new Setting(profileSub)
+      .setName('昵称')
+      .setDesc('名片上显示的昵称')
+      .addText(text => text
+        .setPlaceholder('你的昵称')
+        .setValue(ensureOwerConfig().nickname || '')
+        .onChange(async (value) => {
+          ensureOwerConfig().nickname = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(profileSub)
+      .setName('座右铭')
+      .setDesc('名片上显示的座右铭')
+      .addText(text => text
+        .setPlaceholder('心之所向，素履以往')
+        .setValue(ensureOwerConfig().motto || '')
+        .onChange(async (value) => {
+          ensureOwerConfig().motto = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(profileSub)
+      .setName('生日')
+      .setDesc('格式：YYYY-MM-DD，用于计算"来到世间已X天"')
+      .addText(text => text
+        .setPlaceholder('2000-01-01')
+        .setValue(ensureOwerConfig().birthday || '')
+        .onChange(async (value) => {
+          ensureOwerConfig().birthday = value;
+          await this.plugin.saveSettings();
+        }));
+
+    // ---- 统计语句子分组 ----
+    const statsSub = createSubGroup(secOwer, '📊', '统计语句');
+
+    const { STATS_TEMPLATES, TEMPLATE_PARAMS } = require('./src/modules/ower-card');
+    new Setting(statsSub)
+      .setName('统计语句模板')
+      .setDesc('用 {参数名} 插入计算值。可用参数：' + TEMPLATE_PARAMS.map((p: any) => `{${p.param}}(${p.desc})`).join('、'))
+      .addText(text => text
+        .setPlaceholder(STATS_TEMPLATES[0].template)
+        .setValue(ensureOwerConfig().statsTemplate || '')
+        .onChange(async (value) => {
+          ensureOwerConfig().statsTemplate = value;
+          await this.plugin.saveSettings();
+        }));
+
+    // 预设模板快捷按钮
+    const presetRow = statsSub.createDiv({ cls: 'jhua-ower-preset-row' });
+    for (const tpl of STATS_TEMPLATES) {
+      presetRow.createEl('button', {
+        text: tpl.name,
+        cls: 'jhua-ower-preset-btn',
+      }).addEventListener('click', async () => {
+        ensureOwerConfig().statsTemplate = tpl.template;
+        await this.plugin.saveSettings();
+        new Notice(`已切换为「${tpl.name}」模板`);
+        this.display();
+      });
+    }
+
+    new Setting(statsSub)
+      .setName('参数值高亮颜色')
+      .setDesc('统计语句中 {参数} 替换后的数值颜色，默认 #a78bfa（亮紫）')
+      .addColorPicker(picker => picker
+        .setValue(ensureOwerConfig().statsParamColor || '#a78bfa')
+        .onChange(async (value) => {
+          ensureOwerConfig().statsParamColor = value;
+          await this.plugin.saveSettings();
+        }))
+      .addExtraButton(btn => btn
+        .setIcon('reset')
+        .setTooltip('重置为默认')
+        .onClick(async () => {
+          ensureOwerConfig().statsParamColor = '#a78bfa';
+          await this.plugin.saveSettings();
+          this.display();
+        }));
+
+    new Setting(statsSub)
+      .setName('参数值字号放大')
+      .setDesc('参数值相对普通文字的字号倍数（1.0~2.0），1.25 = 大1号')
+      .addSlider(slider => slider
+        .setLimits(1.0, 2.0, 0.05)
+        .setValue(ensureOwerConfig().statsParamScale ?? 1.25)
+        .setDynamicTooltip()
+        .onChange(async (value) => {
+          ensureOwerConfig().statsParamScale = value;
+          await this.plugin.saveSettings();
+        }));
+
+    // ---- 雷达图子分组 ----
+    const radarSub = createSubGroup(secOwer, '🎯', '雷达图');
+
+    new Setting(radarSub)
+      .setName('画线与数据点颜色')
+      .setDesc('雷达图边框线和数据点的颜色，默认 #a78bfa（亮紫）')
+      .addColorPicker(picker => picker
+        .setValue(ensureOwerConfig().radarColor || '#a78bfa')
+        .onChange(async (value) => {
+          ensureOwerConfig().radarColor = value;
+          await this.plugin.saveSettings();
+        }))
+      .addExtraButton(btn => btn
+        .setIcon('reset')
+        .setTooltip('重置为默认')
+        .onClick(async () => {
+          ensureOwerConfig().radarColor = '#a78bfa';
+          await this.plugin.saveSettings();
+          this.display();
+        }));
+
+    new Setting(radarSub)
+      .setName('颜色明暗调节')
+      .setDesc('调整画线与数据点颜色的明暗（-50~+50），正值变亮，负值变暗，0为原色')
+      .addSlider(slider => slider
+        .setLimits(-50, 50, 5)
+        .setValue(ensureOwerConfig().radarColorLightness ?? 0)
+        .setDynamicTooltip()
+        .onChange(async (value) => {
+          ensureOwerConfig().radarColorLightness = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(radarSub)
+      .setName('填充透明度')
+      .setDesc('雷达图数据区域填充的透明度（0.05~0.6），值越大越深')
+      .addSlider(slider => slider
+        .setLimits(0.05, 0.6, 0.05)
+        .setValue(ensureOwerConfig().radarFillOpacity ?? 0.35)
+        .setDynamicTooltip()
+        .onChange(async (value) => {
+          ensureOwerConfig().radarFillOpacity = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(radarSub)
+      .setName('蛛网背景线深浅')
+      .setDesc('雷达图蛛网格线和轴线的透明度（0.1~1.0），值越小越淡')
+      .addSlider(slider => slider
+        .setLimits(0.1, 1.0, 0.1)
+        .setValue(ensureOwerConfig().radarGridOpacity ?? 0.6)
+        .setDynamicTooltip()
+        .onChange(async (value) => {
+          ensureOwerConfig().radarGridOpacity = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(radarSub)
+      .setName('雷达图大小')
+      .setDesc('雷达图最大宽度（120~360px），值越小图越小')
+      .addSlider(slider => slider
+        .setLimits(120, 360, 20)
+        .setValue(ensureOwerConfig().radarSize ?? 220)
+        .setDynamicTooltip()
+        .onChange(async (value) => {
+          ensureOwerConfig().radarSize = value;
+          await this.plugin.saveSettings();
+        }));
+
+    // ==================== 🌤️ 天气预报 ====================
+    const secWeather = createSection('🌤️', '天气预报', '使用 Open-Meteo 免费API，无需申请Key。默认定位佛山南海区里水镇。');
+
+    new Setting(secWeather)
       .setName('地区名称')
       .setDesc('天气卡片显示的地区名')
       .addText(text => text
@@ -652,7 +918,7 @@ class JhuaHPageSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    new Setting(contentEl)
+    new Setting(secWeather)
       .setName('纬度')
       .setDesc('地区纬度（里水镇: 23.16）')
       .addText(text => text
@@ -666,7 +932,7 @@ class JhuaHPageSettingTab extends PluginSettingTab {
           }
         }));
 
-    new Setting(contentEl)
+    new Setting(secWeather)
       .setName('经度')
       .setDesc('地区经度（里水镇: 113.15）')
       .addText(text => text
@@ -680,39 +946,38 @@ class JhuaHPageSettingTab extends PluginSettingTab {
           }
         }));
 
-    // ==================== 新增：模块列表和使用说明 ====================
-    contentEl.createEl('h3', { text: '可用模块列表及使用说明', cls: 'jhua-settings-subtitle' });
-    
-    // 导入模块列表
+    // ==================== 📦 模块参考 ====================
+    const secModules = createSection('📦', '可用模块列表及使用说明', '各模块的调用方式与参数说明。');
+
     const { MODULES } = require('./src/modules');
-    
+
     MODULES.forEach(module => {
-      const moduleSection = contentEl.createDiv({ cls: 'jhua-module-section' });
-      
+      const moduleSection = secModules.createDiv({ cls: 'jhua-module-section' });
+
       // 模块基础信息
       const moduleHeader = moduleSection.createDiv({ cls: 'jhua-module-header' });
       moduleHeader.createEl('span', { text: `📦 ${module.name}`, cls: 'jhua-module-name' });
       moduleHeader.createEl('span', { text: `ID: ${module.id}`, cls: 'jhua-module-id' });
-      
+
       // 调用示例
       const exampleSection = moduleSection.createDiv({ cls: 'jhua-example-section' });
       exampleSection.createEl('div', { text: '🔖 标签调用示例：', cls: 'jhua-example-title' });
       exampleSection.createEl('code', { text: `{{jhua-hpage:${module.id}}}`, cls: 'jhua-code' });
       exampleSection.createEl('div', { text: '带参数示例：', cls: 'jhua-example-desc' });
       exampleSection.createEl('code', { text: `{{jhua-hpage:${module.id}?参数名=值}}`, cls: 'jhua-code' });
-      
+
       exampleSection.createEl('div', { text: '📝 代码块调用示例：', cls: 'jhua-example-title' });
       exampleSection.createEl('pre', { text: ```jhua-hpage
 module: ${module.id}
 config:
   参数名: 值
       ```, cls: 'jhua-code-block' });
-      
+
       // 参数说明
       const paramSection = moduleSection.createDiv({ cls: 'jhua-param-section' });
       paramSection.createEl('div', { text: '⚙️ 支持的参数：', cls: 'jhua-param-title' });
       const paramList = paramSection.createEl('ul', { cls: 'jhua-param-list' });
-      
+
       // 通用参数
       const commonParams = [
         { name: 'span', desc: '模块占列数，1~4，默认根据模块自动适配' },
@@ -722,16 +987,13 @@ config:
         li.createEl('strong', { text: p.name });
         li.createEl('span', { text: `：${p.desc}` });
       });
-      
+
       // 模块特有参数
       Object.entries(module.defaultConfig).forEach(([key, defaultValue]) => {
         const li = paramList.createEl('li');
         li.createEl('strong', { text: key });
         li.createEl('span', { text: `：默认值 ${JSON.stringify(defaultValue)}` });
       });
-      
-      // 分隔线
-      contentEl.createEl('hr', { cls: 'jhua-separator' });
     });
   }
 }
@@ -743,6 +1005,21 @@ export default class JhuaHPagePlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
+
+    // ==================== 注册个人名片侧边栏视图 ====================
+    this.registerView(OWER_VIEW_TYPE, (leaf) => new OwerView(leaf, this));
+
+    // 左侧 ribbon 图标，点击打开个人名片侧边栏
+    this.addRibbonIcon('user', '个人名片', () => {
+      this.activateOwerView();
+    });
+
+    // 命令面板：打开个人名片
+    this.addCommand({
+      id: 'open-ower-view',
+      name: '打开个人名片',
+      callback: () => this.activateOwerView(),
+    });
 
     // ==================== 注册模板标签解析器（{{jhua-hpage:xxx}}） ====================
     this.registerMarkdownPostProcessor(async (el, ctx) => {
@@ -767,7 +1044,7 @@ export default class JhuaHPagePlugin extends Plugin {
           if (!module) continue;
           
           // 解析查询参数
-          const config = { ...module.defaultConfig, ...this.settings, plugin: this };
+          const config = { ...module.defaultConfig, ...this.settings, ...this.settings.modules?.[moduleId]?.config, plugin: this };
           // 传递倒数日和天气配置
           if (moduleId === 'countdown-card') {
             config.countdownEvents = this.settings.countdownEvents || [];
@@ -1111,7 +1388,7 @@ export default class JhuaHPagePlugin extends Plugin {
           renderDiv.style.setProperty('width', '100%', 'important');
           renderDiv.style.setProperty('height', '100%', 'important');
 
-          const moduleConfig = { ...module.defaultConfig, ...this.settings, plugin: this, span: modDef.span, ...extraConfig };
+          const moduleConfig = { ...module.defaultConfig, ...this.settings, ...this.settings.modules?.[modDef.id]?.config, plugin: this, span: modDef.span, ...extraConfig };
           // 传递倒数日和天气配置
           if (modDef.id === 'countdown-card') {
             moduleConfig.countdownEvents = this.settings.countdownEvents || [];
@@ -1248,11 +1525,53 @@ export default class JhuaHPagePlugin extends Plugin {
       }
     });
 
+    // ==================== project-home 项目主页代码块处理器 ====================
+    // 用法：```project-home
+    //   name: BrazenBlaze
+    //   P0: 00-项目（Projects）/00-工作项目/BrazenBlaze
+    //   A1: 01-领域（Areas）/04-工作领域/BrazenBlaze
+    //   R2: 02-资源（Resources）/04-工作资源/BrazenBlaze
+    //   A3: 00-已完成项目/00-工作项目/BrazenBlaze
+    //   root: A1
+    //   ```
+    this.registerMarkdownCodeBlockProcessor('project-home', async (source, el, ctx) => {
+      if (el.closest('[data-jhua-rendered="true"]')) return;
+      el.dataset.jhuaRendered = 'true';
+
+      try {
+        const config: Record<string, any> = {};
+        const lines = source.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          const match = trimmed.match(/^(name|P0|A1|R2|A3|root)[:.\s]+(.+)$/);
+          if (match) {
+            const key = match[1];
+            const value = match[2].trim();
+            if (value) {
+              config[key] = value;
+            }
+          }
+        }
+
+        const module = getModuleById('project-home');
+        if (!module) {
+          el.createEl('div', { text: '❌ project-home 模块未注册', cls: 'jhua-hpage-error' });
+          return;
+        }
+
+        const finalConfig = { ...module.defaultConfig, ...this.settings, plugin: this, ...config, ...this.settings.modules?.['project-home']?.config };
+        await module.render(this.app, finalConfig, el);
+      } catch (e) {
+        el.createEl('div', { text: `❌ project-home 渲染错误：${e}`, cls: 'jhua-hpage-error' });
+      }
+    });
+
     // ==================== jhua-daily-note 一体化日记代码块处理器 ====================
     // 用法：```jhua-daily-note
     //   date: 2026-05-13
     //   showTracking: true
-    //   showDairy: true
+    //   showDiary: true
     //   showTasks: true
     //   showDone: true
     //   showPhotos: false
@@ -1403,7 +1722,7 @@ export default class JhuaHPagePlugin extends Plugin {
       if (!module) continue;
 
       try {
-        const config = { ...module.defaultConfig, ...this.settings, plugin: this };
+        const config = { ...module.defaultConfig, ...this.settings, ...this.settings.modules?.[moduleId]?.config, plugin: this };
         // 传递倒数日和天气配置
         if (moduleId === 'countdown-card') {
           config.countdownEvents = this.settings.countdownEvents || [];
@@ -1425,6 +1744,22 @@ export default class JhuaHPagePlugin extends Plugin {
 
   onunload() {
     // 组件化方案，无需清理视图
+  }
+
+  /** 激活个人名片侧边栏 */
+  async activateOwerView() {
+    const { workspace } = this.app;
+    let leaf = workspace.getLeavesOfType(OWER_VIEW_TYPE)[0];
+    if (!leaf) {
+      const rightLeaf = workspace.getRightLeaf(false);
+      if (rightLeaf) {
+        await rightLeaf.setViewState({ type: OWER_VIEW_TYPE, active: true });
+        leaf = rightLeaf;
+      }
+    }
+    if (leaf) {
+      workspace.revealLeaf(leaf);
+    }
   }
 
   async loadSettings() {

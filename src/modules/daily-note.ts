@@ -509,7 +509,7 @@ function markdownToHtml(md: string): string {
 		// 空行
 		if (line.trim() === '') return '<br>';
 		// 普通段落
-		return `<p>${processInlineMarkdown(line)}</p>`;
+		return `<div>${processInlineMarkdown(line)}</div>`;
 	}).join('');
 }
 
